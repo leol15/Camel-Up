@@ -1,14 +1,14 @@
 
 
 CP = -cp "./lib/*"
-SP = -sourcepath .
-RUNPATH = -cp "./lib/*:./lib/jetty/*:./server/"
+SP = -sourcepath ".:./game"
+RUNPATH = -cp "./lib/*:./lib/jetty/*:./server/:./game"
 
 default:
 	echo build, run, both
 
 build:
-	javac $(CP) ./server/Server.java
+	javac $(CP) $(SP) ./server/Server.java
 
 run:
 	java $(RUNPATH) Server

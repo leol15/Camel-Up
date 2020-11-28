@@ -44,6 +44,7 @@ public class Server {
         // initialize  //
         /////////////////
 
+        CamelUp game = new CamelUp();
         
 
 
