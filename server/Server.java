@@ -44,48 +44,24 @@ public class Server {
         // initialize  //
         /////////////////
 
+        
 
-        List<MessageItem> history = new LinkedList<>();
 
         Gson gson = new Gson();
-        // refault
+        // default
         //Spark.get("/", )
-        get("/send", (req, res) -> {
+        get("/", (req, res) -> {
             try {
 
-                String name = req.queryParams("name");
-                String message = req.queryParams("message");
-                //long timeStamp = Long.parseLong(req.queryParams("time"));
-                Date date = new Date();
-                long timeStamp = date.getTime();
-
-                if (message == null || name == null || message.isEmpty()) {
-                    return "";
-                }
-
-                if (!map.containsKey(name)) {
-                    map.put(name, new messageHistory());
-                }
-                map.get(name).addMessage(message, timeStamp);
-
-                history.add(new MessageItem(name, message, timeStamp));
-                System.out.println("Name: " + name + "\nMessage: " + message + "\nTime: " + timeStamp);
-
+                // String name = req.queryParams("name");
+                // String message = req.queryParams("message");
     //            Map<String, String[]> mp = req.queryMap().toMap();
-    //            for (String s : mp.keySet()) {
-    //                System.out.println("k: " + s);
-    //                for (String v : mp.get(s)) {
-    //                    System.out.println("v: " + v);
-    //                }
-    //            }
-                // Update chat history
-                updateChat(history, timeStamp);
-                return "Good";
             } catch (Exception e) {
                 System.out.println(e);
                 e.printStackTrace();
                 return "bad";
             }
+            return "";
         });
 
         get("/chat", (req, res) -> {
@@ -94,17 +70,17 @@ public class Server {
             // Update chat
 //            updateChat(history, DATE.getTime());
             // Return chat history
-            return gson.toJson(history);
+            // return gson.toJson(history);
+            return "";
+        	
         });
 
         get("/clear", (req, res) -> {
 //            res.body(gson.toJson("ok"));
 //            res.type("test/json");
             // Update chat
-//            updateChat(history, DATE.getTime());
             // Return chat history
-            history.clear();
-            return "Cleaned Up";
+            return "";
         });
 
         get("/page", (req, res) -> {
