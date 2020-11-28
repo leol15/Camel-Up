@@ -13,6 +13,13 @@ Each camel is an object keeping track of where they are currently
 
 What is the CamelUp interface?
 
+--- Actions?
 - bet
 - row dice 
+
+-- Obervers?
+- get camels
+- get dice
+- get bets
+
 
