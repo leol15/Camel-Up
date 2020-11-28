@@ -7,6 +7,8 @@ import spark.Filter;
 
 import java.util.HashMap;
 import java.util.*;
+import java.io.*;
+import java.nio.file.*;
 import com.google.gson.Gson;
 import com.google.gson.*;
 // all response are JSON
@@ -53,7 +55,7 @@ public class Server {
 
 
 		// return a new game link to use
-		post("/startgame", (req, res) -> {
+		get("/startgame", (req, res) -> {
 			Random r = new Random();
 			while (true) {
 				String roomLink = "";
@@ -64,7 +66,8 @@ public class Server {
 					continue;
 				// create game
 				gamePool.put(roomLink, new CamelUp());
-				return roomLink;
+				res.redirect(GAME_ROUTE + "/" + roomLink);
+				return "";
 			}
 
 		});
@@ -92,6 +95,10 @@ public class Server {
 				// and send it back
 				// String name = req.queryParams("name");
 				// Map<String, String[]> mp = req.queryMap().toMap();
+				res.status(200);          // set status code to 401
+				res.type("text/html"); 
+				res.body();               // get response content
+				
 				return "";
 			} catch (Exception e) {
 				System.out.println(e);
@@ -100,6 +107,16 @@ public class Server {
 			}
 		});
 
+	}
+
+	public String readFileToString(String pathStr) throws IOException {
+	    Path path = Paths.get(pathStr);
+	    BufferedReader reader = Files.newBufferedReader(path);
+	    StringBuilder sb = new StringBuilder();
+	    // while (reader.hasNextLine()) {
+	    	sb.append(reader.readLine());
+	    // }
+	    return sb.toString();
 	}
 }
 
