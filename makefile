@@ -11,7 +11,7 @@ build:
 	javac $(CP) $(SP) ./server/Server.java
 
 run:
-	java $(RUNPATH) Server
+	java $(RUNPATH) Server ./
 
 both:	build	run
 

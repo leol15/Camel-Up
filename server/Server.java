@@ -18,6 +18,11 @@ public class Server {
 	static final String GAME_ROUTE = "/game";
 
 	public static void main(String[] args) {
+		if (args.length != 1) {
+			System.err.println("Usage: exe rootdir");
+			return;
+		}
+		String ROOT_PATH = args[0];
 		port(PORT);
 		///////////////////////
 		// CORSFILTER stuff  //
@@ -97,8 +102,7 @@ public class Server {
 				// Map<String, String[]> mp = req.queryMap().toMap();
 				res.status(200);          // set status code to 401
 				res.type("text/html"); 
-				res.body();               // get response content
-				
+				res.body(readFileToString(ROOT_PATH + "/server/Server.java"));
 				return "";
 			} catch (Exception e) {
 				System.out.println(e);
@@ -109,13 +113,18 @@ public class Server {
 
 	}
 
-	public String readFileToString(String pathStr) throws IOException {
+	public static String readFileToString(String pathStr) {
 	    Path path = Paths.get(pathStr);
-	    BufferedReader reader = Files.newBufferedReader(path);
+	    System.out.println(path.toAbsolutePath());
 	    StringBuilder sb = new StringBuilder();
-	    // while (reader.hasNextLine()) {
-	    	sb.append(reader.readLine());
-	    // }
+	    try {
+		    BufferedReader reader = Files.newBufferedReader(path);
+		    while (reader.ready()) {
+		    	sb.append(reader.readLine());
+		    }
+	    } catch (IOException e) {
+	    	System.err.println(e);
+	    }
 	    return sb.toString();
 	}
 }
