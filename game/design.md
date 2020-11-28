@@ -11,3 +11,8 @@ An array of Strings maps to one of the 6/7 colors
 Each camel is an object keeping track of where they are currently
 
 
+What is the CamelUp interface?
+
+- bet
+- row dice 
+
