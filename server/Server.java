@@ -19,6 +19,7 @@ public class Server {
 	static final String CREATE_GAME_ROUTE = "/create";
 	static final String HOME_ROUTE = "/";
 	static final String DEV_ROUTE = "/dev";
+	static final String PLAYER_NAME_KEY = "uname";
 
 	
 	static Gson gson;
@@ -66,12 +67,6 @@ public class Server {
 		// default
 		// should we serve the web as well?
 		get(HOME_ROUTE, (req, res) -> {
-			Map<String, String> cookieMap = req.cookies();
-			for (String k : cookieMap.keySet())
-				System.out.println(cookieMap.get(k));
-			if (!cookieMap.containsKey("test_cookie")) {
-				res.cookie("test_cookie", "test_cookie_val");
-			}
 			try {
 				// read a local html file
 				// and send it back
@@ -90,12 +85,8 @@ public class Server {
 
 		// return a new game link to use
 		get(CREATE_GAME_ROUTE, (req, res) -> {
-			Random r = new Random();
 			while (true) {
-				String roomLink = "";
-				for (int i = 0; i < 5; i++) {
-					roomLink += (char) ('a' + r.nextInt(26));
-				}
+				String roomLink = genRandomString(5);
 				if (gamePool.containsKey(roomLink))
 					continue;
 				// create game
@@ -159,7 +150,30 @@ public class Server {
 
 	public static void handleGameRequest(Request req, Response res, CamelUp game) {
 		String action = req.queryParams("action");
+		action = action == null ? "" : action;
 		switch (action) {
+			case PLAYER_NAME_KEY:
+				String uname = req.queryParams(PLAYER_NAME_KEY);
+				uname = uname == null ? "" : uname;
+				String oldName = req.cookie(PLAYER_NAME_KEY);
+				System.out.println("old name is " + uname);
+				if (oldName != null && oldName.equals(uname) && game.containsPlayer(uname)) {
+					// same name, do nothing
+					break;
+				}
+				while (game.containsPlayer(uname)) {
+					uname += genRandomString(1);
+				}
+				// might be changing name??
+				if (oldName != null && game.containsPlayer(oldName)) {
+					// game.changeName(oldName, uname); //todo
+				} else {
+					game.addPlayers(uname);
+				}
+				// new player
+				res.cookie(PLAYER_NAME_KEY, uname);
+				res.body(uname);
+				break;
 			case "dice":
 				res.body(gson.toJson(game.getDice()));
 				break;
@@ -170,6 +184,18 @@ public class Server {
 			default:
 				res.body(game.toString());
 		}
+	}
+
+
+	//////////////
+	// helpers
+	public static String genRandomString(int len) {
+		Random r = new Random();
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < len; i++) {
+			sb.append((char) ('a' + r.nextInt(26)));
+		}
+		return sb.toString();
 	}
 }
 
