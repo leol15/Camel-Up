@@ -8,9 +8,9 @@
 
 	<ul>
 		<li id="l1"><button id="b1" onclick="startNewGame()">Button 1</button></li>
-		<li id="l2"><button id="b2" onclick="getGameInfo()">Button 2</button></li>
-		<li id="l3"><button id="b3" onclick="">Button 3</button></li>
-		<li id="l4"><button id="b4" onclick="">Button 4</button></li>
+		<li id="l2"><button id="b2" onclick="getGameInfo('dice')">Button 2</button></li>
+		<li id="l3"><button id="b3" onclick="getGameInfo('roll')">Button 3</button></li>
+		<li id="l4"><button id="b4" onclick="getGameInfo()">Button 4</button></li>
 		<li id="l5"><button id="b5" onclick="">Button 5</button></li>
 		<li id="l6"><button id="b6" onclick="">Button 6</button></li>
 		<li id="l7"><button id="b7" onclick="">Button 7</button></li>
@@ -24,6 +24,7 @@
 		let host = window.location.host + "/"
 		let DISPLAY = document.getElementById('result');
 		let GAME_ROUTE = "/game"
+		let CREATE_GAME_ROUTE = "/create"
 
 		// return a promise, use then
 		function fetch_url(url) {
@@ -40,15 +41,15 @@
 
 		var gameID;
 		function startNewGame() {
-			fetch_url("startgame")
+			fetch_url(CREATE_GAME_ROUTE)
 				.then(text => {
 					DISPLAY.innerHTML += "<br>" + text;
 					gameID = text;
 				});
 		}
 
-		function getGameInfo() {
-			fetch_url(GAME_ROUTE + "/" + gameID)
+		function getGameInfo(action) {
+			fetch_url(GAME_ROUTE + "/" + gameID + "?action=" + action)
 				.then(text => DISPLAY.innerHTML += "<br>" + text);
 		}
 

@@ -54,10 +54,22 @@ public class CamelUp {
 	// state change
 	public void newRound() {
 		dice.clear();
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < COLORS.length; i++)
 			dice.add(i);
 	}
 
+
+	// observers
+	public void getCamels() {
+
+	}
+
+	public List<String> getDice() {
+		List<String> ret = new ArrayList<>();
+		for (int i : dice)
+			ret.add(COLORS[i]);
+		return ret;
+	}
 
 	@Override
 	public String toString() {
@@ -113,9 +125,8 @@ public class CamelUp {
 			// move everything
 			int oldIdx = this.index;
 			int oldHeight = height;
-			for (int i = height; i < playground[oldIdx].size(); i++) {
+			for (int i = height; i < playground[oldIdx].size(); i++)
 				playground[oldIdx].get(i).insertAt(newIdx);
-			}
 			// remove
 			while (oldHeight < playground[oldIdx].size())
 				playground[oldIdx].remove(oldHeight);

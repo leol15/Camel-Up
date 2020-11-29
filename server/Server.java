@@ -16,6 +16,13 @@ public class Server {
 
 	static final int PORT = 45678;
 	static final String GAME_ROUTE = "/game";
+	static final String CREATE_GAME_ROUTE = "/create";
+	static final String HOME_ROUTE = "/";
+	static final String DEV_ROUTE = "/dev";
+
+	
+	static Gson gson;
+
 
 	public static void main(String[] args) {
 		if (args.length != 1) {
@@ -54,13 +61,29 @@ public class Server {
 		/////////////////
 
 		HashMap<String, CamelUp> gamePool = new HashMap<>();
-		Gson gson = new Gson();
+		gson = new Gson();
 
-
+		// default
+		// should we serve the web as well?
+		get(HOME_ROUTE, (req, res) -> {
+			try {
+				// read a local html file
+				// and send it back
+				// Map<String, String[]> mp = req.queryMap().toMap();
+				res.status(200);          
+				res.type("text/html"); 
+				res.body(readFileToString(ROOT_PATH + "/server/Server.java"));
+				return "";
+			} catch (Exception e) {
+				System.out.println(e);
+				e.printStackTrace();
+				return "bad";
+			}
+		});
 
 
 		// return a new game link to use
-		get("/startgame", (req, res) -> {
+		get(CREATE_GAME_ROUTE, (req, res) -> {
 			Random r = new Random();
 			while (true) {
 				String roomLink = "";
@@ -88,37 +111,17 @@ public class Server {
 			if (game == null)
 				return "";
 			// or return something like room does not exist
-			// return game info, todo
 			
+			// handle request
 			handleGameRequest(req, res, game);
 			return "";
 		});
 
-		// default
-		// should we serve the web as well?
-		get("/", (req, res) -> {
-			try {
-				// read a local html file
-				// and send it back
-				// Map<String, String[]> mp = req.queryMap().toMap();
-				res.status(200);          
-				res.type("text/html"); 
-				res.body(readFileToString(ROOT_PATH + "/server/Server.java"));
-				return "";
-			} catch (Exception e) {
-				System.out.println(e);
-				e.printStackTrace();
-				return "bad";
-			}
-		});
 
 
-		get("/dev", (req, res) -> {
+		get(DEV_ROUTE, (req, res) -> {
 			try {
 				// read a local html file
-				// and send it back
-				// String name = req.queryParams("name");
-				// Map<String, String[]> mp = req.queryMap().toMap();
 				res.status(200);          
 				res.type("text/html"); 
 				res.body(readFileToString(ROOT_PATH + "/dev/debug.html"));
@@ -150,11 +153,17 @@ public class Server {
 
 	public static void handleGameRequest(Request req, Response res, CamelUp game) {
 		String action = req.queryParams("action");
-		if (action == null) {
-			res.body(game.toString());
-			return;
+		switch (action) {
+			case "dice":
+				res.body(gson.toJson(game.getDice()));
+				break;
+			case "roll":
+				game.rollDie();
+				res.body(game.toString());
+				break;
+			default:
+				res.body(game.toString());
 		}
-		
 	}
 }
 
