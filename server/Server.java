@@ -146,8 +146,14 @@ public class Server {
 			case PLAYER_NAME_KEY:
 				// dealt with already!!
 				break;
+			case "camels":
+				res.body(gson.toJson(game.getCamels()));
+				break;
 			case "dice":
 				res.body(gson.toJson(game.getDice()));
+				break;
+			case "players":
+				res.body(gson.toJson(game.getPlayers()));
 				break;
 			case "roll":
 				game.rollDie();

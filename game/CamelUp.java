@@ -133,20 +133,6 @@ public class CamelUp {
 	}
 
 
-	// observers
-	public void getCamels() {
-		// for (Camel c : camels) {
-		// 	c.toString();
-		// }
-	}
-
-	public List<String> getDice() {
-		List<String> ret = new ArrayList<>();
-		for (int i : dice)
-			ret.add(COLORS[i]);
-		return ret;
-	}
-
 	// Sorts the camels and finds the first place camel and the second place camel
 	public void updateLeaderBoard() {
 		for (Camel c : camels) {
@@ -173,7 +159,32 @@ public class CamelUp {
 	public void gameover() {
 		updateLeaderBoard();
 		refreshBettingTags();
+	}
 
+	////////////////
+	// observers
+	public Map<String, int[]> getCamels() {
+		Map<String, int[]> colorToPosition = new TreeMap<>();
+		for (Camel c : camels) {
+			int[] pos = new int[]{c.position(), c.rank()};
+			colorToPosition.put(c.color(), pos);
+		}
+		return colorToPosition;
+	}
+
+	public Map<String, Player> getPlayers() {
+		Map<String, Player> ret = new HashMap<>();
+		for (String name : players.keySet()) {
+			ret.put(name, players.get(name));
+		}
+		return ret;
+	}
+
+	public List<String> getDice() {
+		List<String> ret = new ArrayList<>();
+		for (int i : dice)
+			ret.add(COLORS[i]);
+		return ret;
 	}
 
 	@Override
