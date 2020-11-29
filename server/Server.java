@@ -100,7 +100,7 @@ public class Server {
 				// and send it back
 				// String name = req.queryParams("name");
 				// Map<String, String[]> mp = req.queryMap().toMap();
-				res.status(200);          // set status code to 401
+				res.status(200);          
 				res.type("text/html"); 
 				res.body(readFileToString(ROOT_PATH + "/server/Server.java"));
 				return "";
