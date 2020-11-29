@@ -32,7 +32,8 @@ public class CamelUp {
 	// Keeps track of the loser global bets players make
 	private Queue<GlobalBet> biggestLoser;
 	// Keeps track of the traps on the board
-	private Trap[] traps;
+	// private Trap[] traps;
+	private Map<Integer, Trap> traps;
 
 	private String leading;
 	private String trailing;
@@ -43,6 +44,7 @@ public class CamelUp {
 	@SuppressWarnings("unchecked")
 	public CamelUp() {
 		rand = new Random();
+		traps = new HashMap<>();
 		dice = new ArrayList<>();
 		for (int i = 0; i < COLORS.length; i++)
 			dice.add(i);
@@ -53,9 +55,9 @@ public class CamelUp {
 		camels = new Camel[COLORS.length];
 		for (int i = 0; i < COLORS.length; i++) {
 			if (COLORS[i].equals("BLACK") || COLORS[i].equals("WHITE")) {
-				camels[i] = new Camel(COLORS[i], playground, rand, LAST_TILE, -1);
+				camels[i] = new Camel(COLORS[i], playground, rand, traps, LAST_TILE, -1);
 			} else {
-				camels[i] = new Camel(COLORS[i], playground, rand);
+				camels[i] = new Camel(COLORS[i], playground, rand, traps);
 			}
 		}
 
@@ -93,7 +95,8 @@ public class CamelUp {
 		biggestWinner = new LinkedList<>();
 		biggestLoser = new LinkedList<>();
 
-		traps = new Trap[LAST_TILE];
+		// traps = new Trap[LAST_TILE];
+		
 	}
 
 	public boolean addPlayer(String name) {
@@ -168,19 +171,28 @@ public class CamelUp {
 	// A player can place a trap on the board
 	// Traps can only be placed on empty tiles on the board (no camel there yet)
 	public boolean placeTrap(String player, int tile, boolean boost) {
-		if (tile < 0 || tile >= LAST_TILE) {
+		// Has to be on the board
+		if (tile <= 0 || tile >= LAST_TILE) {
 			return false;
 		}
+		// No camels on that tile
 		if (playground[tile].size() != 0) {
 			return false;
 		}
-		Trap currTrap = players.get(player).getTrap();
-		if (boost) {
-			currTrap.changeTrap(1);
-		} else {
-			currTrap.changeTrap(-1);
+		// No traps already on the tile or next to the tile
+		if (traps.containsKey(tile) || traps.containsKey(tile + 1) 
+									|| traps.containsKey(tile - 1)) {
+			return false;
 		}
-		traps[tile] = currTrap;
+		Trap currTrap = players.get(player).getTrap();
+		traps.remove(currTrap.getTile());
+		// traps[currTrap.getTile()] = null; 
+		if (boost) {
+			currTrap.changeTrap(tile, 1);
+		} else {
+			currTrap.changeTrap(tile, -1);
+		}
+		traps.put(tile, currTrap);
 		return true;
 	}
 
@@ -192,8 +204,15 @@ public class CamelUp {
 
 		updateLeaderBoard();
 		refreshBettingTags();
+		clearTrap();
 	}
 
+	public void clearTrap() {
+		for (Trap t : traps.values()) {
+			t.changeTrap(0, 0);
+		}
+		traps.clear();
+	}
 
 	// Sorts the camels and finds the first place camel and the second place camel
 	public void updateLeaderBoard() {
@@ -292,14 +311,17 @@ public class CamelUp {
 		private List<Camel>[] playground;
 		private int index; // the index in playground
 		private int height; // the height in playground 0 - 6
+		Map<Integer, Trap> traps;
+		
 
 		// for the camels that go backwards
 		private int mult = 1;
 
-		public Camel(String col, List<Camel>[] playground, Random r, int index, int scaler) {
+		public Camel(String col, List<Camel>[] playground, Random r, Map<Integer, Trap> traps, int index, int scaler) {
 			//this(col, playground, r);
 			this.color = col;
 			this.playground = playground;
+			this.traps = traps;
 			// add self
 			this.index = index + scaler * (1 + r.nextInt(DICE_MAX));
 			playground[this.index].add(this);
@@ -307,8 +329,8 @@ public class CamelUp {
 			mult = scaler;
 		}
 
-		public Camel(String col, List<Camel>[] playground, Random r) {
-			this(col, playground, r, 0, 1);
+		public Camel(String col, List<Camel>[] playground, Random r, Map<Integer, Trap> traps) {
+			this(col, playground, r, traps, 0, 1);
 			// this.color = col;
 			// this.playground = playground;
 			// // add self
@@ -488,14 +510,21 @@ public class CamelUp {
 	private class Trap {
 		int value;
 		String player;
+		int tile;
 
 		public Trap(String player) {
 			this.player = player;
 			this.value = 0;
+			this.tile = 0;
 		}
 
-		public void changeTrap(int scalar) {
+		public void changeTrap(int tile, int scalar) {
+			this.tile = tile;
 			value = scalar;
+		}
+
+		public int getTile() {
+			return tile;
 		}
 	}
 }
