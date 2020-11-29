@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>bug?</title>
+</head>
+<body>
+
+	<ul>
+		<li id="l1"><button id="b1" onclick="startNewGame()">Button 1</button></li>
+		<li id="l2"><button id="b2" onclick="getGameInfo()">Button 2</button></li>
+		<li id="l3"><button id="b3" onclick="">Button 3</button></li>
+		<li id="l4"><button id="b4" onclick="">Button 4</button></li>
+		<li id="l5"><button id="b5" onclick="">Button 5</button></li>
+		<li id="l6"><button id="b6" onclick="">Button 6</button></li>
+		<li id="l7"><button id="b7" onclick="">Button 7</button></li>
+	</ul>
+	<div>
+		<p id="result"></p>
+	</div>
+
+	<script type="text/javascript">
+		// constants
+		let host = window.location.host + "/"
+		let DISPLAY = document.getElementById('result');
+		let GAME_ROUTE = "/game"
+
+		// return a promise, use then
+		function fetch_url(url) {
+			console.log("fetching [" + url + "]")
+			return fetch(url).then(res => res.text())
+				.then(text => {
+					console.log("v.v.v.v.v")
+					console.log(text);
+					console.log("^.^.^.^.^")
+					return text;	
+				})
+				.catch(err => console.log(err));
+		}
+
+		var gameID;
+		function startNewGame() {
+			fetch_url("startgame")
+				.then(text => {
+					DISPLAY.innerHTML += "<br>" + text;
+					gameID = text;
+				});
+		}
+
+		function getGameInfo() {
+			fetch_url(GAME_ROUTE + "/" + gameID)
+				.then(text => DISPLAY.innerHTML += "<br>" + text);
+		}
+
+
+
+	</script>
+</body>
+</html>

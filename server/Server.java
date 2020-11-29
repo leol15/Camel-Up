@@ -38,7 +38,7 @@ public class Server {
 			@Override
 			public void handle(Request request, Response response) {
 				corsHeaders.forEach(response::header);
-				System.out.print("___Client IP: ");
+				System.out.print("____IP: ");
 				System.out.print(request.ip());
 				System.out.print(" -> ");
 				System.out.println(request.url());
@@ -71,8 +71,8 @@ public class Server {
 					continue;
 				// create game
 				gamePool.put(roomLink, new CamelUp());
-				res.redirect(GAME_ROUTE + "/" + roomLink);
-				return "";
+				// res.redirect(GAME_ROUTE + "/" + roomLink);
+				return roomLink;
 			}
 
 		});
@@ -89,7 +89,9 @@ public class Server {
 				return "";
 			// or return something like room does not exist
 			// return game info, todo
-			return game.toString();
+			
+			handleGameRequest(req, res, game);
+			return "";
 		});
 
 		// default
@@ -98,11 +100,28 @@ public class Server {
 			try {
 				// read a local html file
 				// and send it back
-				// String name = req.queryParams("name");
 				// Map<String, String[]> mp = req.queryMap().toMap();
 				res.status(200);          
 				res.type("text/html"); 
 				res.body(readFileToString(ROOT_PATH + "/server/Server.java"));
+				return "";
+			} catch (Exception e) {
+				System.out.println(e);
+				e.printStackTrace();
+				return "bad";
+			}
+		});
+
+
+		get("/dev", (req, res) -> {
+			try {
+				// read a local html file
+				// and send it back
+				// String name = req.queryParams("name");
+				// Map<String, String[]> mp = req.queryMap().toMap();
+				res.status(200);          
+				res.type("text/html"); 
+				res.body(readFileToString(ROOT_PATH + "/dev/debug.html"));
 				return "";
 			} catch (Exception e) {
 				System.out.println(e);
@@ -120,12 +139,22 @@ public class Server {
 	    try {
 		    BufferedReader reader = Files.newBufferedReader(path);
 		    while (reader.ready()) {
-		    	sb.append(reader.readLine());
+		    	sb.append(reader.readLine() + "\n");
 		    }
 	    } catch (IOException e) {
 	    	System.err.println(e);
 	    }
 	    return sb.toString();
+	}
+
+
+	public static void handleGameRequest(Request req, Response res, CamelUp game) {
+		String action = req.queryParams("action");
+		if (action == null) {
+			res.body(game.toString());
+			return;
+		}
+		
 	}
 }
 
