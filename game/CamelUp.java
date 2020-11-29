@@ -109,13 +109,11 @@ public class CamelUp {
 
 		// End game if a camel crosses the finish line
 		if (camels[dice.get(idx)].position() >= LAST_TILE - 1) {
+			// end of game -- when a camel crosses the finish line
+			// Camel that is the furthest and heighest
 			gameover();
 		} else { // continue game if not end game
 			dice.remove(idx);
-			// end of game -- when a camel crosses the finish line
-			// Camel that is the furthest and heighest
-			//if ()
-
 			// end of round?
 			if (dice.size() == 1)
 				newRound();
@@ -237,7 +235,7 @@ public class CamelUp {
 		public void rollDie(Random r) {
 			System.out.println(this + ": moving");
 			// already at end??
-			if (index == 19 || (index == 0 && mult < 0))
+			if ((index == 19 && mult > 0) || (index == 0 && mult < 0))
 				return;
 			// new index
 			int newIdx = index + (1 + r.nextInt(DICE_MAX)) * mult;

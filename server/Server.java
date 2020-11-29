@@ -148,16 +148,18 @@ public class Server {
 				break;
 			case "camels":
 				res.body(gson.toJson(game.getCamels()));
-				break;
-			case "dice":
-				res.body(gson.toJson(game.getDice()));
+				res.type("application/json");
 				break;
 			case "players":
 				res.body(gson.toJson(game.getPlayers()));
+				res.type("application/json");
 				break;
 			case "roll":
 				game.rollDie();
-				res.body(game.toString());
+				// and return the dice
+			case "dice":
+				res.body(gson.toJson(game.getDice()));
+				res.type("application/json");
 				break;
 			default:
 				res.body(game.toString());

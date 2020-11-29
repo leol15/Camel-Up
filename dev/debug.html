@@ -3,19 +3,37 @@
 <head>
 	<meta charset="utf-8">
 	<title>bug?</title>
+	<style type="text/css">
+		.die-obj {
+			display: inline-block;
+			width: 30px;
+			height: 30px;
+			margin: 10px;
+		}
+	</style>
 </head>
 <body>
 
 	<ul>
 		<li><button onclick="startNewGame()">Start Game</button></li>
-		<li><button onclick="gameAction('uname&uname=oreo')">Create Name</button></li>
-		<li><button onclick="gameAction('camels')">Check Camels</button></li>
-		<li><button onclick="gameAction('dice')">Check Dice</button></li>
-		<li><button onclick="gameAction('players')">Check Players</button></li>
-		<li><button onclick="gameAction('roll')">Roll</button></li>
-		<li><button onclick="gameAction('uname&uname=oleo')">Chenge Name</button></li>
+		<li><button onclick="createPlayer('oreo')">Create Name</button></li>
+		<li><button onclick="checkCamels()">Check Camels</button></li>
+		<li><button onclick="checkDice()">Check Dice</button></li>
+		<li><button onclick="checkPlayers()">Check Players</button></li>
+		<li><button onclick="makeRoll()">Roll</button></li>
+		<li><button onclick="createPlayer('oreo2')">Chenge Name</button></li>
 		<li><button onclick="">Button 7</button></li>
 	</ul>
+
+	<div>
+		<span class="die-obj"></span>
+		<span class="die-obj"></span>
+		<span class="die-obj"></span>
+		<span class="die-obj"></span>
+		<span class="die-obj"></span>
+		<span class="die-obj"></span>
+		<span class="die-obj"></span>
+	</div>
 	<div>
 		<p id="result"></p>
 	</div>
@@ -27,15 +45,45 @@
 		let GAME_ROUTE = "/game"
 		let CREATE_GAME_ROUTE = "/create"
 
+		// elements
+		let dice_el = document.querySelectorAll(".die-obj");
+		colors = []
+		function updateDice(avaliableColors) {
+			if (colors.length === 0) {
+				colors = avaliableColors
+			}			
+			for (var i = 0; i < colors.length; i++) {
+				dice_el[i].style.backgroundColor = colors[i];
+				// update state
+				if (avaliableColors.includes(colors[i])) {
+					dice_el[i].style.display = "inline-block";
+				} else {
+					dice_el[i].style.display = "none";
+				}
+			}
+		}
+
+
 		// return a promise, use then
+		// will try to consume a json or text
 		function fetch_url(url) {
 			console.log("fetching [" + url + "]")
-			return fetch(url).then(res => res.text())
-				.then(text => {
+			return fetch(url)
+				.then(res => {
+					let type = res.headers.get('content-type')
+					if (type.includes("application/json")) {
+						return res.json()
+					} else if (type.includes("text")) {
+						return res.text()
+					} else {
+						return res.data()
+					}
+				})
+				.then(thing => {
 					console.log("v.v.v.v.v")
-					console.log(text);
+					console.log(thing);
 					console.log("^.^.^.^.^")
-					return text;	
+					return thing
 				})
 				.catch(err => console.log(err));
 		}
@@ -50,9 +98,36 @@
 		}
 
 		function gameAction(action) {
-			fetch_url(GAME_ROUTE + "/" + gameID + "?action=" + action)
-				.then(text => DISPLAY.innerHTML += "<br>" + text);
+			return fetch_url(GAME_ROUTE + "/" + gameID + "?action=" + action)
+				.then(text => {
+					DISPLAY.innerHTML += "<br>" + JSON.stringify(text)
+					return text
+				});
 		}
+
+
+		// warpped call to gameAction
+		function createPlayer(name) {
+			gameAction('uname&uname=' + name)
+		}
+
+		function checkPlayers() {
+			gameAction('players')
+		}
+
+		function checkCamels() {
+			gameAction('camels')
+		}
+
+		function checkDice() {
+			gameAction('dice').then(o => updateDice(o))
+		}
+
+		function makeRoll() {
+			gameAction("roll").then(o => updateDice(o))
+		}
+
+
 
 
 
