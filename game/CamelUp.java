@@ -159,7 +159,12 @@ public class CamelUp {
 		}
 		leading = sortCamel.poll().color();
 		trailing = sortCamel.poll().color();
-		sortCamel.clear();
+		
+		// 3rd and 4th place
+		sortCamel.poll();
+		sortCamel.poll();
+
+		last = sortCamel.poll().color();
 	}
 
 	// Resolves all the betting tags of the players
