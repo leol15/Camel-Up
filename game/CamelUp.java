@@ -40,9 +40,9 @@ public class CamelUp {
 		camels = new Camel[COLORS.length];
 		for (int i = 0; i < COLORS.length; i++) {
 			if (COLORS[i].equals("BLACK") || COLORS[i].equals("WHITE")) {
-				camels[i] = new Camel(COLORS[i], playground, -1);
+				camels[i] = new Camel(COLORS[i], playground, rand, -1);
 			} else {
-				camels[i] = new Camel(COLORS[i], playground);
+				camels[i] = new Camel(COLORS[i], playground, rand);
 			}
 		}
 
@@ -76,14 +76,6 @@ public class CamelUp {
 				}
 			}
 		});
-	}
-
-	// Starts a game of camel up
-	// Each camel starts with a roll.
-	public void startGame() {
-		for (int i = 0; i < COLORS.length; i++) {
-			camels[i].rollDie(rand);
-		}
 	}
 
 	public boolean addPlayer(String name) {
@@ -207,18 +199,19 @@ public class CamelUp {
 		// for the camels that go backwards
 		private int mult = 1;
 
-		public Camel(String col, List<Camel>[] playground) {
+		public Camel(String col, List<Camel>[] playground, Random r) {
 			this.color = col;
 			this.playground = playground;
 			// add self
 			playground[0].add(this);
-			this.index = 0;
+			this.index = (1 + r.nextInt(3));
 			this.height = playground[0].size() - 1;
 		}
 
-		public Camel(String col, List<Camel>[] playground, int scaler) {
-			this(col, playground);
+		public Camel(String col, List<Camel>[] playground, Random r, int scaler) {
+			this(col, playground, r);
 			mult = scaler;
+			this.index = 20 - (1 + r.nextInt(3));
 		}
 
 		public void rollDie(Random r) {
