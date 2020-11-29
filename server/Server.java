@@ -72,8 +72,8 @@ public class Server {
 				// and send it back
 				// Map<String, String[]> mp = req.queryMap().toMap();
 				res.status(200);          
-				res.type("text/html"); 
-				res.body(readFileToString(ROOT_PATH + "/server/Server.java"));
+				res.type("text/plain"); 
+				res.body(readFileToString(ROOT_PATH + "/server/server_design.md"));
 				return "";
 			} catch (Exception e) {
 				System.out.println(e);
@@ -109,8 +109,12 @@ public class Server {
 				return "";
 			// or return something like room does not exist
 			
+			// resolve player name first
+			String playerName = resolvePlayerName(req, res, game);
+			if (playerName == null)
+				return "authenticate failed, please create a name to play";
 			// handle request
-			handleGameRequest(req, res, game);
+			handleGameRequest(req, res, game, playerName);
 			return "";
 		});
 
@@ -132,47 +136,15 @@ public class Server {
 
 	}
 
-	public static String readFileToString(String pathStr) {
-	    Path path = Paths.get(pathStr);
-	    System.out.println(path.toAbsolutePath());
-	    StringBuilder sb = new StringBuilder();
-	    try {
-		    BufferedReader reader = Files.newBufferedReader(path);
-		    while (reader.ready()) {
-		    	sb.append(reader.readLine() + "\n");
-		    }
-	    } catch (IOException e) {
-	    	System.err.println(e);
-	    }
-	    return sb.toString();
-	}
 
 
-	public static void handleGameRequest(Request req, Response res, CamelUp game) {
+	public static void handleGameRequest(Request req, Response res, CamelUp game, String player) {
 		String action = req.queryParams("action");
 		action = action == null ? "" : action;
+		// autheticate player
 		switch (action) {
 			case PLAYER_NAME_KEY:
-				String uname = req.queryParams(PLAYER_NAME_KEY);
-				uname = uname == null ? "" : uname;
-				String oldName = req.cookie(PLAYER_NAME_KEY);
-				System.out.println("old name is " + uname);
-				if (oldName != null && oldName.equals(uname) && game.containsPlayer(uname)) {
-					// same name, do nothing
-					break;
-				}
-				while (game.containsPlayer(uname)) {
-					uname += genRandomString(1);
-				}
-				// might be changing name??
-				if (oldName != null && game.containsPlayer(oldName)) {
-					game.changePlayer(oldName, uname); //todo
-				} else {
-					game.addPlayer(uname);
-				}
-				// new player
-				res.cookie(PLAYER_NAME_KEY, uname);
-				res.body(uname);
+				// dealt with already!!
 				break;
 			case "dice":
 				res.body(gson.toJson(game.getDice()));
@@ -186,6 +158,56 @@ public class Server {
 		}
 	}
 
+	// return a existing player name
+	// return null for players that cannot be authorized
+	public static String resolvePlayerName(Request req, Response res, CamelUp game) {
+		String action = req.queryParams("action");
+		if (action == null)
+			return null;
+		String oldName = req.cookie(PLAYER_NAME_KEY);
+		if (!action.equals(PLAYER_NAME_KEY)) {
+			// name must exist
+			if (game.containsPlayer(oldName)) {
+				// valid name
+				return oldName;
+			} else {
+				return null;
+			}
+		}
+		// is request valid?
+		String newName = req.queryParams(PLAYER_NAME_KEY);
+		if (newName == null)
+			return null;
+
+		// change name || new player
+		if (game.containsPlayer(oldName)) {
+			// change name
+			if (oldName.equals(newName))
+				return oldName;
+			while (game.containsPlayer(newName)) {
+				newName += genRandomString(1);
+			}
+			game.changePlayer(oldName, newName);
+			res.cookie(PLAYER_NAME_KEY, newName);
+			res.body(newName);
+			return newName;
+		} else {
+			// new player, make sure name does no collide		
+			while (game.containsPlayer(newName)) {
+				newName += genRandomString(1);
+			}
+			// add!
+			if (game.addPlayer(newName)) {
+				res.cookie(PLAYER_NAME_KEY, newName);
+				res.body(newName);
+				return newName;
+			} else {
+				res.removeCookie(PLAYER_NAME_KEY);
+				return null;
+			}
+		}
+	}
+
 
 	//////////////
 	// helpers
@@ -196,6 +218,22 @@ public class Server {
 			sb.append((char) ('a' + r.nextInt(26)));
 		}
 		return sb.toString();
+	}
+
+
+	public static String readFileToString(String pathStr) {
+	    Path path = Paths.get(pathStr);
+	    System.out.println(path.toAbsolutePath());
+	    StringBuilder sb = new StringBuilder();
+	    try {
+		    BufferedReader reader = Files.newBufferedReader(path);
+		    while (reader.ready()) {
+		    	sb.append(reader.readLine() + "\n");
+		    }
+	    } catch (IOException e) {
+	    	System.err.println(e);
+	    }
+	    return sb.toString();
 	}
 }
 
