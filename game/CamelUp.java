@@ -1,5 +1,8 @@
 
 import java.util.Random;
+
+import javax.swing.text.html.HTMLDocument.Iterator;
+
 import java.util.*;
 
 public class CamelUp {
@@ -17,7 +20,6 @@ public class CamelUp {
 	// slot 1 Camel3, ...
 	// slot 2
 	// ...
-	private List<Camel>[] playground;
 	private List<Camel>[] playground;
 	private Map<String, Queue<Bet>> betTags;
 
@@ -45,7 +47,11 @@ public class CamelUp {
 		betTags = new HashMap<>();
 		for (String str : COLORS) {
 			if (!str.equals("BLACK") && !str.equals("WHITE")) {
-				Queue<Bet> currBet = new PriorityQueue<>(4, new BetComparator());
+				Queue<Bet> currBet = new PriorityQueue<>(4, new Comparator<Bet>(){
+						public int compare(Bet b1, Bet b2) {
+							return b2.value - b1.value;
+						}
+				});
 				currBet.add(new Bet(str, 5));
 				currBet.add(new Bet(str, 3));
 				currBet.add(new Bet(str, 2));
@@ -172,7 +178,7 @@ public class CamelUp {
 	// Bet keeps track of color and value
 	// Color to place it back into our betting management system
 	// Value so each player knows how many coins they win if they do win
-	private class Bet {
+	private class Bet extends iterable<Bet> {
 		String color;
 		int value;
 		
@@ -181,11 +187,11 @@ public class CamelUp {
 			this.value = value;
 		}
 
-		class BetComparator implements Comparator<Bet>{
-			public int compare(Bet b1, Bet b2) {
-				return b2.value - b1.value;
-			}
-		}
+		// class BetComparator implements Comparator<Bet>{
+		// 	public int compare(Bet b1, Bet b2) {
+		// 		return b2.value - b1.value;
+		// 	}
+		// }
 	}
 
 	private class Player {
@@ -213,7 +219,8 @@ public class CamelUp {
 			bets.add(b);
 
 			// Notify other players who bet on which camel
-			System.out.println(name + " placed a bet on " + color + " and has taken the $" + b.value + " bet")
+			System.out.println(name + " placed a bet on " + color + 
+								" and has taken the $" + b.value + " bet");
 			return true;
 		}
 
