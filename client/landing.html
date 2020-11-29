@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Camel Up!</title>
+</head>
+<body>
+	<!-- just need to introduce the game and allow creation of rooms -->
+	<button onclick="createGame()">Start</button>
+	<script type="text/javascript">
+		function createGame() {
+			// body...
+			// host = window.location.host
+			fetch("/create")
+				.then(res => res.text())
+				.then(text => console.log(text))
+				// .then(gameid => {
+				// 	// window.location.replace(host + "/game/" + gameid);
+				// })
+		}
+	</script>
+</body>
+</html>

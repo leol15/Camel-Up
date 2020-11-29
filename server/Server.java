@@ -72,8 +72,8 @@ public class Server {
 				// and send it back
 				// Map<String, String[]> mp = req.queryMap().toMap();
 				res.status(200);          
-				res.type("text/plain"); 
-				res.body(readFileToString(ROOT_PATH + "/server/server_design.md"));
+				res.type("text/html"); 
+				res.body(readFileToString(ROOT_PATH + "/client/landing.html"));
 				return "";
 			} catch (Exception e) {
 				System.out.println(e);
@@ -90,9 +90,11 @@ public class Server {
 				if (gamePool.containsKey(roomLink))
 					continue;
 				// create game
-				gamePool.put(roomLink, new CamelUp());
-				// res.redirect(GAME_ROUTE + "/" + roomLink);
-				return roomLink;
+				// gamePool.put(roomLink, new CamelUp());
+				// return roomLink;
+				res.redirect(GAME_ROUTE + "/" + roomLink);
+				
+				return "";
 			}
 
 		});
