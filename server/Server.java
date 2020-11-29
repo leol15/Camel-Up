@@ -166,9 +166,9 @@ public class Server {
 				}
 				// might be changing name??
 				if (oldName != null && game.containsPlayer(oldName)) {
-					// game.changeName(oldName, uname); //todo
+					game.changePlayer(oldName, uname); //todo
 				} else {
-					game.addPlayers(uname);
+					game.addPlayer(uname);
 				}
 				// new player
 				res.cookie(PLAYER_NAME_KEY, uname);
