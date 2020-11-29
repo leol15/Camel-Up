@@ -31,6 +31,8 @@ public class CamelUp {
 	private Queue<GlobalBet> biggestWinner;
 	// Keeps track of the loser global bets players make
 	private Queue<GlobalBet> biggestLoser;
+	// Keeps track of the traps on the board
+	private Trap[] traps;
 
 	private String leading;
 	private String trailing;
@@ -90,6 +92,8 @@ public class CamelUp {
 
 		biggestWinner = new LinkedList<>();
 		biggestLoser = new LinkedList<>();
+
+		traps = new Trap[LAST_TILE];
 	}
 
 	public boolean addPlayer(String name) {
@@ -159,6 +163,25 @@ public class CamelUp {
 	// game
 	public boolean placeLoserGlobalBet(String player, String color) {
 		return players.get(player).placeGlobalBet(biggestLoser, color);
+	}
+
+	// A player can place a trap on the board
+	// Traps can only be placed on empty tiles on the board (no camel there yet)
+	public boolean placeTrap(String player, int tile, boolean boost) {
+		if (tile < 0 || tile >= LAST_TILE) {
+			return false;
+		}
+		if (playground[tile].size() != 0) {
+			return false;
+		}
+		Trap currTrap = players.get(player).getTrap();
+		if (boost) {
+			currTrap.changeTrap(1);
+		} else {
+			currTrap.changeTrap(-1);
+		}
+		traps[tile] = currTrap;
+		return true;
 	}
 
 	// state change
@@ -378,10 +401,12 @@ public class CamelUp {
 		private List<Bet> bets;
 		private Map<String, Queue<Bet>> betTags;
 		private Map<String, GlobalBet> globalBets;
+		private Trap trap;
 
 		public Player(String name, Map<String, Queue<Bet>> betTags) {
 			this.name = name;
 			coin = 3;
+			trap = new Trap(name);
 			bets = new ArrayList<>();
 			this.betTags = betTags;
 			globalBets = new HashMap<>(5);
@@ -402,6 +427,10 @@ public class CamelUp {
 
 		public void addCoin(int val) {
 			coin += val;
+		}
+
+		public Trap getTrap() {
+			return trap;
 		}
 
 		// Called when a player bets on a camel
@@ -456,4 +485,17 @@ public class CamelUp {
 		}
 	}
 	
+	private class Trap {
+		int value;
+		String player;
+
+		public Trap(String player) {
+			this.player = player;
+			this.value = 0;
+		}
+
+		public void changeTrap(int scalar) {
+			value = scalar;
+		}
+	}
 }
