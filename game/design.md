@@ -38,3 +38,14 @@ When all tags for that camel are taken, they are out.
 
 -- otherwise
 - if it is 3rd-5th place the owner loses a coin
+
+
+Global Betting
+- Each player has 5 global betting cards 1 for each camel
+- Each player can choose to bet for the camel they think will win the whole game
+- Each player can also choose to bet for the camel they think will be dead last
+- The earlier you place your bet and are right the more you win.
+    - Winners get 8, 5, 3, 2, 1, 0... 
+    - So the first person to guess the right camel gets 1 coin
+- You can place more than 1 camel in each pile, just know you only have 1 of each camel
+    - You cannot change where you placed your color if you already placed it

@@ -6,6 +6,7 @@ public class CamelUp {
 	public static final String[] COLORS = {
 		"RED", "GREEN", "BLUE", "BLACK", "WHITE", "PURPLE", "GOLD"
 	};
+	public static final int[] WINNINGS = {8, 5, 3, 2, 1, 0, 0, 0};
 	public static final int MAX_PLAYERS = 8;
 	public static final int LAST_TILE = 20;
 	public static final int DICE_MAX = 3;
@@ -195,26 +196,22 @@ public class CamelUp {
 
 	// Implemented the globalBetting resolving.
 	private void resolveGlobalBets() {
-		int[] winnings = {8, 5, 3, 2, 1, 0, 0, 0};
+		resolveGlobalBetsHelper(biggestWinner, leading);
+		resolveGlobalBetsHelper(biggestLoser, last);
+	}
+	
+	// Refactored redundant code to make it work for winner or loser
+	private void resolveGlobalBetsHelper(Queue<GlobalBet> q, String camel) {
 		int idx = 0;
-		for (GlobalBet b : biggestWinner) {
-			if (b.color.equals(leading)) {
-				players.get(b.player).addCoin(winnings[idx]);
+		for (GlobalBet b : q) {
+			if (b.color.equals(camel)) {
+				players.get(b.player).addCoin(WINNINGS[idx]);
 				idx++;
 			} else {
 				players.get(b.player).addCoin(-1);
 			}
 		}
-
-		idx = 0;
-		for (GlobalBet b : biggestLoser) {
-			if (b.color.equals(last)) {
-				players.get(b.player).addCoin(winnings[idx]);
-				idx++;
-			} else {
-				players.get(b.player).addCoin(-1);
-			}
-		}
+		q.clear();
 	}
 
 	// End game situation
