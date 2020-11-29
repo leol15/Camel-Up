@@ -178,7 +178,7 @@ public class CamelUp {
 	// Bet keeps track of color and value
 	// Color to place it back into our betting management system
 	// Value so each player knows how many coins they win if they do win
-	private class Bet extends iterable<Bet> {
+	private class Bet {
 		String color;
 		int value;
 		
@@ -229,7 +229,7 @@ public class CamelUp {
 		// @param winner, pass in the winner camel for the round
 		// @param secondPlace, pass in the second place camel for the round
 		public void resolveBets(String winner, String secondPlace) {
-			Iterator<Bet> itr = new bets.iterator();
+			Iterator<Bet> itr = bets.iterator();
 			while (itr.hasNext()) {
 				Bet b = itr.next();
 				itr.remove();
