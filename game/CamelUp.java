@@ -1,5 +1,3 @@
-import java.util.Random;
-
 import java.util.*;
 
 public class CamelUp {
@@ -22,13 +20,22 @@ public class CamelUp {
 	// slot 2
 	// ...
 	private List<Camel>[] playground;
+	// The games betting Tags storage before players place bets
 	private Map<String, Queue<Bet>> betTags;
+	// Keeps track of players game record and easy to get
 	private Map<String, Player> players;
-	private Queue<Camel> sortCamel;
+	// Auxilliary data structure to sort camels
+	private Queue<Camel> sortCamel;	
+	// Keeps track of the winner global bets players make
+	private Queue<GlobalBet> biggestWinner;
+	// Keeps track of the loser global bets players make
+	private Queue<GlobalBet> biggestLoser;
 
 	private String leading;
 	private String trailing;
 	private String last;
+
+	
 
 	@SuppressWarnings("unchecked")
 	public CamelUp() {
@@ -79,6 +86,9 @@ public class CamelUp {
 				}
 			}
 		});
+
+		biggestWinner = new LinkedList<>();
+		biggestLoser = new LinkedList<>();
 	}
 
 	public boolean addPlayer(String name) {
@@ -120,6 +130,36 @@ public class CamelUp {
 		}
 	}
 
+	// Communicates with the server about which player rolled a dice
+	// Player who rolled the dice gets 1 coin
+	public void rollDie(String player) {
+		rollDie();
+		players.get(player).rollDie();
+	}
+
+	// A player can choose to place a bet on a camel
+	public boolean placeBets(String player, String color) {
+		// Shouldn't be allowed to do that but if they do...
+		if (color.equals("BLACK") || color.equals("WHITE")) {
+			return false;
+		}
+		return players.get(player).placeBet(color);
+	}
+
+	// A player can choose to place a winning global bet on a camel
+	// Players bet what camel will be in first place at the end of the
+	// game
+	public boolean placeWinnerGlobalBet(String player, String color) {
+		return players.get(player).placeGlobalBet(biggestWinner, color);
+	}
+
+	// A player can choose to place a loser global bet on a camel
+	// Players bet what camel will be in last place at the end of the
+	// game
+	public boolean placeLoserGlobalBet(String player, String color) {
+		return players.get(player).placeGlobalBet(biggestLoser, color);
+	}
+
 	// state change
 	public void newRound() {
 		dice.clear();
@@ -147,9 +187,33 @@ public class CamelUp {
 	}
 
 	// Resolves all the betting tags of the players
-	public void refreshBettingTags() {
+	private void refreshBettingTags() {
 		for (Map.Entry<String, Player> p : players.entrySet()) {
 			p.getValue().resolveBets(leading, trailing);
+		}
+	}
+
+	// Implemented the globalBetting resolving.
+	private void resolveGlobalBets() {
+		int[] winnings = {8, 5, 3, 2, 1, 0, 0, 0};
+		int idx = 0;
+		for (GlobalBet b : biggestWinner) {
+			if (b.color.equals(leading)) {
+				players.get(b.player).addCoin(winnings[idx]);
+				idx++;
+			} else {
+				players.get(b.player).addCoin(-1);
+			}
+		}
+
+		idx = 0;
+		for (GlobalBet b : biggestLoser) {
+			if (b.color.equals(last)) {
+				players.get(b.player).addCoin(winnings[idx]);
+				idx++;
+			} else {
+				players.get(b.player).addCoin(-1);
+			}
 		}
 	}
 
@@ -157,6 +221,7 @@ public class CamelUp {
 	public void gameover() {
 		updateLeaderBoard();
 		refreshBettingTags();
+		resolveGlobalBets();
 	}
 
 	////////////////
@@ -300,21 +365,46 @@ public class CamelUp {
 		// }
 	}
 
+	private class GlobalBet {
+		String color;
+		String player;
+
+		public GlobalBet(String player, String color) {
+			this.player = player;
+			this.color = color;
+		}
+	}
+
 	private class Player {
 		private String name;
 		private int coin;
 		private List<Bet> bets;
 		private Map<String, Queue<Bet>> betTags;
+		private Map<String, GlobalBet> globalBets;
 
 		public Player(String name, Map<String, Queue<Bet>> betTags) {
 			this.name = name;
 			coin = 3;
 			bets = new ArrayList<>();
 			this.betTags = betTags;
+			globalBets = new HashMap<>(5);
+			for (String str : COLORS) {
+				if (!str.equals("BLACK") && !str.equals("WHITE")) {
+					globalBets.put(str, new GlobalBet(name, str));
+				}
+			}
 		}
 
 		public void changeName(String name) {
 			this.name = name;
+		}
+
+		public void rollDie() {
+			coin++;
+		}
+
+		public void addCoin(int val) {
+			coin += val;
 		}
 
 		// Called when a player bets on a camel
@@ -352,6 +442,15 @@ public class CamelUp {
 				}
 				betTags.get(b.color).add(b);
 			}
+		}
+
+		public boolean placeGlobalBet(Queue<GlobalBet> q, String color) {
+			if (globalBets.containsKey(color)) {
+				q.add(globalBets.get(color));
+				globalBets.remove(color);
+				return true;
+			}
+			return false;
 		}
 
 		@Override
