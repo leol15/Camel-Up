@@ -9,6 +9,9 @@ public class CamelUp {
 		"RED", "GREEN", "BLUE", "BLACK", "WHITE", "PURPLE", "GOLD"
 	};
 	public static final int MAX_PLAYERS = 8;
+	public static final int LAST_TILE = 20;
+	public static final int DICE_MAX = 3;
+	public static final int BET_MAX = 4;
 
 	// states
 	private Random rand;
@@ -33,14 +36,14 @@ public class CamelUp {
 		dice = new ArrayList<>();
 		for (int i = 0; i < COLORS.length; i++)
 			dice.add(i);
-		playground = new List[20];
+		playground = new List[LAST_TILE];
 		for (int i = 0; i < playground.length; i++) {
 			playground[i] = new ArrayList<>();
 		}
 		camels = new Camel[COLORS.length];
 		for (int i = 0; i < COLORS.length; i++) {
 			if (COLORS[i].equals("BLACK") || COLORS[i].equals("WHITE")) {
-				camels[i] = new Camel(COLORS[i], playground, rand, -1);
+				camels[i] = new Camel(COLORS[i], playground, rand, LAST_TILE, -1);
 			} else {
 				camels[i] = new Camel(COLORS[i], playground, rand);
 			}
@@ -52,7 +55,7 @@ public class CamelUp {
 		betTags = new HashMap<>();
 		for (String str : COLORS) {
 			if (!str.equals("BLACK") && !str.equals("WHITE")) {
-				Queue<Bet> currBet = new PriorityQueue<>(4, new Comparator<Bet>(){
+				Queue<Bet> currBet = new PriorityQueue<>(BET_MAX, new Comparator<Bet>(){
 						public int compare(Bet b1, Bet b2) {
 							return b2.value - b1.value;
 						}
@@ -105,7 +108,7 @@ public class CamelUp {
 		camels[dice.get(idx)].rollDie(rand);
 
 		// End game if a camel crosses the finish line
-		if (camels[dice.get(idx)].position() >= 20) {
+		if (camels[dice.get(idx)].position() >= LAST_TILE - 1) {
 			gameover();
 		} else { // continue game if not end game
 			dice.remove(idx);
@@ -199,19 +202,25 @@ public class CamelUp {
 		// for the camels that go backwards
 		private int mult = 1;
 
-		public Camel(String col, List<Camel>[] playground, Random r) {
+		public Camel(String col, List<Camel>[] playground, Random r, int index, int scaler) {
+			//this(col, playground, r);
 			this.color = col;
 			this.playground = playground;
 			// add self
-			playground[0].add(this);
-			this.index = (1 + r.nextInt(3));
-			this.height = playground[0].size() - 1;
+			this.index = index + scaler * (1 + r.nextInt(DICE_MAX));
+			playground[this.index].add(this);
+			this.height = playground[this.index].size() - 1;
+			mult = scaler;
 		}
 
-		public Camel(String col, List<Camel>[] playground, Random r, int scaler) {
-			this(col, playground, r);
-			mult = scaler;
-			this.index = 20 - (1 + r.nextInt(3));
+		public Camel(String col, List<Camel>[] playground, Random r) {
+			this(col, playground, r, 0, 1);
+			// this.color = col;
+			// this.playground = playground;
+			// // add self
+			// this.index = (1 + r.nextInt(3));
+			// playground[this.index].add(this);
+			// this.height = playground[index].size() - 1;
 		}
 
 		public void rollDie(Random r) {
@@ -220,8 +229,8 @@ public class CamelUp {
 			if (index == 19 || (index == 0 && mult < 0))
 				return;
 			// new index
-			int newIdx = index + (1 + r.nextInt(3)) * mult;
-			newIdx = Math.max(0, Math.min(19, newIdx));
+			int newIdx = index + (1 + r.nextInt(DICE_MAX)) * mult;
+			newIdx = Math.max(0, Math.min(LAST_TILE - 1, newIdx));
 			System.out.println(this + ": moving to " + newIdx);
 
 			// end of line
