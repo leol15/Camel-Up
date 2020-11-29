@@ -6,18 +6,8 @@
 </head>
 <body>
 	<!-- just need to introduce the game and allow creation of rooms -->
-	<button onclick="createGame()">Start</button>
-	<script type="text/javascript">
-		function createGame() {
-			// body...
-			// host = window.location.host
-			fetch("/create")
-				.then(res => res.text())
-				.then(text => console.log(text))
-				// .then(gameid => {
-				// 	// window.location.replace(host + "/game/" + gameid);
-				// })
-		}
-	</script>
+	<form action="/create" method="GET">
+		<input type="submit" value="Create Game">
+	</form>
 </body>
 </html>

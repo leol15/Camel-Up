@@ -42,7 +42,7 @@
 		// constants
 		let host = window.location.host + "/"
 		let DISPLAY = document.getElementById('result');
-		let GAME_ROUTE = "/game"
+		let GAME_COMM_ROUTE = "/gamespeaks"
 		let CREATE_GAME_ROUTE = "/create"
 
 		// elements
@@ -90,15 +90,16 @@
 
 		var gameID;
 		function startNewGame() {
-			fetch_url(CREATE_GAME_ROUTE)
-				.then(text => {
-					DISPLAY.innerHTML += "<br>" + text;
-					gameID = text;
+			fetch(CREATE_GAME_ROUTE, {method:"post"})
+				.then(re => re.text())
+				.then(id => {
+					DISPLAY.innerHTML += "<br>" + id;
+					gameID = id;
 				});
 		}
 
 		function gameAction(action) {
-			return fetch_url(GAME_ROUTE + "/" + gameID + "?action=" + action)
+			return fetch_url(GAME_COMM_ROUTE + "/" + gameID + "?action=" + action)
 				.then(text => {
 					DISPLAY.innerHTML += "<br>" + JSON.stringify(text)
 					return text

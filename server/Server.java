@@ -15,7 +15,8 @@ import com.google.gson.*;
 public class Server {
 
 	static final int PORT = 45678;
-	static final String GAME_ROUTE = "/game";
+	static final String GAME_ROUTE = "/game";  // /game/[gamecode] => landing page
+	static final String GAME_COMM_ROUTE = "/gamespeaks";  // internal request route
 	static final String CREATE_GAME_ROUTE = "/create";
 	static final String HOME_ROUTE = "/";
 	static final String DEV_ROUTE = "/dev";
@@ -71,7 +72,7 @@ public class Server {
 				// read a local html file
 				// and send it back
 				// Map<String, String[]> mp = req.queryMap().toMap();
-				res.status(200);          
+				res.status(200);
 				res.type("text/html"); 
 				res.body(readFileToString(ROOT_PATH + "/client/landing.html"));
 				return "";
@@ -85,21 +86,49 @@ public class Server {
 
 		// return a new game link to use
 		get(CREATE_GAME_ROUTE, (req, res) -> {
-			while (true) {
-				String roomLink = genRandomString(5);
-				if (gamePool.containsKey(roomLink))
-					continue;
-				// create game
-				// gamePool.put(roomLink, new CamelUp());
-				// return roomLink;
-				res.redirect(GAME_ROUTE + "/" + roomLink);
-				
-				return "";
+			String roomLink = genRandomString(5);
+			while (gamePool.containsKey(roomLink)) {
+				roomLink = genRandomString(5);
 			}
-
+			// create game
+			gamePool.put(roomLink, new CamelUp());
+			res.redirect(GAME_ROUTE + "/" + roomLink);
+			return "";
 		});
 
+		// return a new gameID, for dev
+		post(CREATE_GAME_ROUTE, (req, res) -> {
+			System.out.println("post");
+			String roomLink = genRandomString(5);
+			while (gamePool.containsKey(roomLink)) {
+				roomLink = genRandomString(5);
+			}
+			// create game
+			gamePool.put(roomLink, new CamelUp());
+			res.status(200);
+			return roomLink;
+		});
+
+		// serve the main game page
 		get(GAME_ROUTE + "/*", (req, res) -> {
+			if (req.splat().length == 0)
+				return "";
+			// connect request to specific room
+			String roomLink = req.splat()[0];
+			if (!gamePool.containsKey(roomLink))
+				return "Room does not exist";
+			CamelUp game = gamePool.get(roomLink);
+			if (game == null)
+				return "Room does not exist";
+			// or return something like room does not exist
+
+			res.type("text/html"); 
+			res.body(readFileToString(ROOT_PATH + "/client/game.html"));
+			res.status(200);
+			return "";
+		});
+
+		get(GAME_COMM_ROUTE + "/*", (req, res) -> {
 			if (req.splat().length == 0)
 				return "";
 			// connect request to specific room
