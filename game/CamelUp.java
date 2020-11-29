@@ -20,12 +20,13 @@ public class CamelUp {
 	private Map<String, Queue<Bet>> betTags;
 	private Map<String, Player> players;
 
+	@SuppressWarnings("unchecked")
 	public CamelUp() {
 		rand = new Random();
 		dice = new ArrayList<>();
 		for (int i = 0; i < COLORS.length; i++)
 			dice.add(i);
-		playground = new ArrayList[20];
+		playground = new List[20];
 		for (int i = 0; i < playground.length; i++) {
 			playground[i] = new ArrayList<>();
 		}
