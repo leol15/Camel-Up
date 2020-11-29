@@ -18,13 +18,12 @@ public class CamelUp {
 	// slot 2
 	// ...
 	private List<Camel>[] playground;
-	private List<Camel>[] playground;
 	private Map<String, Queue<Bet>> betTags;
 
 	public CamelUp() {
 		rand = new Random();
 		dice = new ArrayList<>();
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < COLORS.length; i++)
 			dice.add(i);
 		playground = new ArrayList[20];
 		for (int i = 0; i < playground.length; i++) {
@@ -45,7 +44,9 @@ public class CamelUp {
 		betTags = new HashMap<>();
 		for (String str : COLORS) {
 			if (!str.equals("BLACK") && !str.equals("WHITE")) {
-				Queue<Bet> currBet = new PriorityQueue<>(4, new BetComparator());
+				// Bet bet = new Bet("tmp", 0);
+				// BetComparator betComp = bet.BetComparator();
+				Queue<Bet> currBet = new PriorityQueue<>(4, new Bet.BetComparator());
 				currBet.add(new Bet(str, 5));
 				currBet.add(new Bet(str, 3));
 				currBet.add(new Bet(str, 2));
@@ -213,7 +214,7 @@ public class CamelUp {
 			bets.add(b);
 
 			// Notify other players who bet on which camel
-			System.out.println(name + " placed a bet on " + color + " and has taken the $" + b.value + " bet")
+			System.out.println(name + " placed a bet on " + color + " and has taken the $" + b.value + " bet");
 			return true;
 		}
 
@@ -222,7 +223,7 @@ public class CamelUp {
 		// @param winner, pass in the winner camel for the round
 		// @param secondPlace, pass in the second place camel for the round
 		public void resolveBets(String winner, String secondPlace) {
-			Iterator<Bet> itr = new bets.iterator();
+			Iterator<Bet> itr = bets.iterator();
 			while (itr.hasNext()) {
 				Bet b = itr.next();
 				itr.remove();

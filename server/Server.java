@@ -66,6 +66,12 @@ public class Server {
 		// default
 		// should we serve the web as well?
 		get(HOME_ROUTE, (req, res) -> {
+			Map<String, String> cookieMap = req.cookies();
+			for (String k : cookieMap.keySet())
+				System.out.println(cookieMap.get(k));
+			if (!cookieMap.containsKey("test_cookie")) {
+				res.cookie("test_cookie", "test_cookie_val");
+			}
 			try {
 				// read a local html file
 				// and send it back
