@@ -1,6 +1,4 @@
 
-import java.util.Random;
-
 import java.util.*;
 
 public class CamelUp {
@@ -20,6 +18,7 @@ public class CamelUp {
 	// ...
 	private List<Camel>[] playground;
 	private Map<String, Queue<Bet>> betTags;
+	private Map<String, Player> players;
 
 	public CamelUp() {
 		rand = new Random();
@@ -57,6 +56,24 @@ public class CamelUp {
 				betTags.put(str, currBet);
 			}
 		}
+
+		players = new HashMap<>();
+	}
+
+	// Starts a game of camel up
+	// Each camel starts with a roll.
+	public void startGame() {
+		for (int i = 0; i < COLORS.length; i++) {
+			camels[i].rollDie(rand);
+		}
+	}
+
+	public void addPlayers(String name) {
+		players.put(name, new Player(name, betTags));
+	}
+
+	public boolean containsPlayer(String name) {
+		return players.containsKey(name);
 	}
 
 	// actions
@@ -66,15 +83,20 @@ public class CamelUp {
 		int idx = rand.nextInt(dice.size());
 		// roll
 		camels[dice.get(idx)].rollDie(rand);
-		dice.remove(idx);
 
-		// end of game -- when a camel crosses the finish line
-		// Camel that is the furthest and heighest
-		//if ()
+		// End game if a camel crosses the finish line
+		if (camels[dice.get(idx)].position() >= 20) {
+			gameover();
+		} else { // continue game if not end game
+			dice.remove(idx);
+			// end of game -- when a camel crosses the finish line
+			// Camel that is the furthest and heighest
+			//if ()
 
-		// end of round?
-		if (dice.size() == 1)
-			newRound();
+			// end of round?
+			if (dice.size() == 1)
+				newRound();
+		}
 	}
 
 	// state change
@@ -95,6 +117,10 @@ public class CamelUp {
 		for (int i : dice)
 			ret.add(COLORS[i]);
 		return ret;
+	}
+
+	public void gameover() {
+
 	}
 
 	@Override
@@ -156,6 +182,11 @@ public class CamelUp {
 			// remove
 			while (oldHeight < playground[oldIdx].size())
 				playground[oldIdx].remove(oldHeight);
+		}
+
+		// return the position of the camel
+		public int position() {
+			return index;
 		}
 
 		// helper to move
