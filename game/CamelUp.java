@@ -8,6 +8,7 @@ public class CamelUp {
 	public static final String[] COLORS = {
 		"RED", "GREEN", "BLUE", "BLACK", "WHITE", "PURPLE", "GOLD"
 	};
+	public static final int MAX_PLAYERS = 8;
 
 	// states
 	private Random rand;
@@ -20,6 +21,11 @@ public class CamelUp {
 	private List<Camel>[] playground;
 	private Map<String, Queue<Bet>> betTags;
 	private Map<String, Player> players;
+	private Queue<Camel> sortCamel;
+
+	private String leading;
+	private String trailing;
+	private String last;
 
 	@SuppressWarnings("unchecked")
 	public CamelUp() {
@@ -60,6 +66,16 @@ public class CamelUp {
 		}
 
 		players = new HashMap<>();
+
+		sortCamel = new PriorityQueue<>(5, new Comparator<Camel>(){
+			public int compare(Camel c1, Camel c2) {
+				if (c1.position() != c2.position()) {
+					return c2.position() - c1.position();
+				} else {
+					return c2.rank() - c1.rank();
+				}
+			}
+		});
 	}
 
 	// Starts a game of camel up
@@ -70,12 +86,22 @@ public class CamelUp {
 		}
 	}
 
-	public void addPlayers(String name) {
+	public boolean addPlayer(String name) {
+		if (MAX_PLAYERS == players.size()) {
+			return false;
+		}
 		players.put(name, new Player(name, betTags));
+		return true;
 	}
 
 	public boolean containsPlayer(String name) {
 		return players.containsKey(name);
+	}
+
+	public void changePlayer(String old, String newName) {
+		players.get(old).changeName(newName);
+		players.put(newName, players.get(old));
+		players.remove(old);
 	}
 
 	// actions
@@ -106,12 +132,17 @@ public class CamelUp {
 		dice.clear();
 		for (int i = 0; i < COLORS.length; i++)
 			dice.add(i);
+
+		updateLeaderBoard();
+		refreshBettingTags();
 	}
 
 
 	// observers
 	public void getCamels() {
-
+		// for (Camel c : camels) {
+		// 	c.toString();
+		// }
 	}
 
 	public List<String> getDice() {
@@ -121,7 +152,27 @@ public class CamelUp {
 		return ret;
 	}
 
+	// Sorts the camels and finds the first place camel and the second place camel
+	public void updateLeaderBoard() {
+		for (Camel c : camels) {
+			sortCamel.add(c);
+		}
+		leading = sortCamel.poll().color();
+		trailing = sortCamel.poll().color();
+		sortCamel.clear();
+	}
+
+	// Resolves all the betting tags of the players
+	public void refreshBettingTags() {
+		for (Map.Entry<String, Player> p : players.entrySet()) {
+			p.getValue().resolveBets(leading, trailing);
+		}
+	}
+
+	// End game situation
 	public void gameover() {
+		updateLeaderBoard();
+		refreshBettingTags();
 
 	}
 
@@ -191,6 +242,14 @@ public class CamelUp {
 			return index;
 		}
 
+		public int rank() {
+			return height;
+		}
+
+		public String color() {
+			return color;
+		}
+
 		// helper to move
 		// only adds self, not remove
 		private void insertAt(int index) {
@@ -236,6 +295,10 @@ public class CamelUp {
 			coin = 3;
 			bets = new ArrayList<>();
 			this.betTags = betTags;
+		}
+
+		public void changeName(String name) {
+			this.name = name;
 		}
 
 		// Called when a player bets on a camel
