@@ -16,5 +16,5 @@ run:
 both:	build	run
 
 clean:
-	rm server/*.class
+	rm server/*.class game/*.class
 
