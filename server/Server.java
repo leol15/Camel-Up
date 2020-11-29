@@ -16,6 +16,13 @@ public class Server {
 
 	static final int PORT = 45678;
 	static final String GAME_ROUTE = "/game";
+	static final String CREATE_GAME_ROUTE = "/create";
+	static final String HOME_ROUTE = "/";
+	static final String DEV_ROUTE = "/dev";
+
+	
+	static Gson gson;
+
 
 	public static void main(String[] args) {
 		if (args.length != 1) {
@@ -38,7 +45,7 @@ public class Server {
 			@Override
 			public void handle(Request request, Response response) {
 				corsHeaders.forEach(response::header);
-				System.out.print("___Client IP: ");
+				System.out.print("____IP: ");
 				System.out.print(request.ip());
 				System.out.print(" -> ");
 				System.out.println(request.url());
@@ -54,13 +61,29 @@ public class Server {
 		/////////////////
 
 		HashMap<String, CamelUp> gamePool = new HashMap<>();
-		Gson gson = new Gson();
+		gson = new Gson();
 
-
+		// default
+		// should we serve the web as well?
+		get(HOME_ROUTE, (req, res) -> {
+			try {
+				// read a local html file
+				// and send it back
+				// Map<String, String[]> mp = req.queryMap().toMap();
+				res.status(200);          
+				res.type("text/html"); 
+				res.body(readFileToString(ROOT_PATH + "/server/Server.java"));
+				return "";
+			} catch (Exception e) {
+				System.out.println(e);
+				e.printStackTrace();
+				return "bad";
+			}
+		});
 
 
 		// return a new game link to use
-		get("/startgame", (req, res) -> {
+		get(CREATE_GAME_ROUTE, (req, res) -> {
 			Random r = new Random();
 			while (true) {
 				String roomLink = "";
@@ -71,8 +94,8 @@ public class Server {
 					continue;
 				// create game
 				gamePool.put(roomLink, new CamelUp());
-				res.redirect(GAME_ROUTE + "/" + roomLink);
-				return "";
+				// res.redirect(GAME_ROUTE + "/" + roomLink);
+				return roomLink;
 			}
 
 		});
@@ -88,21 +111,20 @@ public class Server {
 			if (game == null)
 				return "";
 			// or return something like room does not exist
-			// return game info, todo
-			return game.toString();
+			
+			// handle request
+			handleGameRequest(req, res, game);
+			return "";
 		});
 
-		// default
-		// should we serve the web as well?
-		get("/", (req, res) -> {
+
+
+		get(DEV_ROUTE, (req, res) -> {
 			try {
 				// read a local html file
-				// and send it back
-				// String name = req.queryParams("name");
-				// Map<String, String[]> mp = req.queryMap().toMap();
 				res.status(200);          
 				res.type("text/html"); 
-				res.body(readFileToString(ROOT_PATH + "/server/Server.java"));
+				res.body(readFileToString(ROOT_PATH + "/dev/debug.html"));
 				return "";
 			} catch (Exception e) {
 				System.out.println(e);
@@ -120,12 +142,28 @@ public class Server {
 	    try {
 		    BufferedReader reader = Files.newBufferedReader(path);
 		    while (reader.ready()) {
-		    	sb.append(reader.readLine());
+		    	sb.append(reader.readLine() + "\n");
 		    }
 	    } catch (IOException e) {
 	    	System.err.println(e);
 	    }
 	    return sb.toString();
+	}
+
+
+	public static void handleGameRequest(Request req, Response res, CamelUp game) {
+		String action = req.queryParams("action");
+		switch (action) {
+			case "dice":
+				res.body(gson.toJson(game.getDice()));
+				break;
+			case "roll":
+				game.rollDie();
+				res.body(game.toString());
+				break;
+			default:
+				res.body(game.toString());
+		}
 	}
 }
 
