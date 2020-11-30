@@ -20,11 +20,20 @@
 			color: white;
 			text-align: center;
 			padding: 15px;
+			transition: all 0.5s;
 		}
-		#banner a:hover {
+		#banner:hover {
 			cursor: pointer;
 		}
+		#banner:active {
+			transition: all 0.2s;
+			background-color: white;
+		}
 
+		/*pick name*/
+		#name-input {
+			text-align: center;
+		}
 	</style>
 </head>
 <body>
@@ -32,13 +41,16 @@
 	<div id="banner" onclick="copyLinkAddress()"></div>
 	<h1>Wellcome!</h1>
 	<!-- pick name -->
+	<center>
+		<input onchange="sumbmitName(this)" id="name-input" type="text" placeholder="pick a name" autofocus>
+	</center>
 
 	<script type="text/javascript">
 		// fill banner with link address
 		let banner_el = document.getElementById('banner')
 		// get link name
 		let GAME_ID = window.location.pathname.split("/")[2]
-		banner_el.innerHTML = "Game link: <a>" + GAME_ID + "</a> (Click to copy)";
+		banner_el.innerHTML = "Game link: " + GAME_ID + " (Click to copy)";
 		// dummy_link_el.style.display = "none";
 		function copyLinkAddress() {
 			let dummy_link_el = document.createElement("input");
@@ -48,6 +60,61 @@
 			dummy_link_el.setSelectionRange(0, 99999); /*For mobile devices*/
 			document.execCommand("copy");
 			dummy_link_el.remove();
+		}
+
+		// static final variables
+		let GAME_COMM_ROUTE = "gamespeaks/" + GAME_ID
+		let NAME_KEY = "uname"
+		// getters
+		let DICE_KEY = "dice"
+		let BET_KEY = "bet"
+		let PLAYERS_KEY = "players"
+		let GLOBAL_BET_KEY = "makeBet"
+		let CAMELS_KEY = "camels"
+		// mutator
+		let MAKE_ROLL_KEY = "roll"
+		let MAKE_BET_KEY = "makeBet"
+
+		let user_name = ""
+		// helpers
+		// return a promise, use then
+		// will try to consume a json or text
+		function fetch_url(url) {
+			console.log("fetching [" + url + "]")
+			return fetch(url)
+				.then(res => {
+					let type = res.headers.get('content-type')
+					if (type.includes("application/json")) {
+						return res.json()
+					} else if (type.includes("text")) {
+						return res.text()
+					} else {
+						return res.data()
+					}
+				})
+				.then(thing => {
+					console.log("v.v.v.v.v")
+					console.log(thing);
+					console.log("^.^.^.^.^")
+					return thing
+				})
+				.catch(err => console.log(err));
+		}
+
+		// request using a game action		
+		function gameAction(action) {
+			return fetch_url(GAME_COMM_ROUTE + "?action=" + action);
+		}
+
+		// set uname send address
+		function sumbmitName(form) {
+			// body...
+			console.log(form.value)
+			gameAction(NAME_KEY + "&" + NAME_KEY + "=" + form.value)
+				.then(name => {
+					user_name = name;
+					console.log(name)
+				})
 		}
 
 

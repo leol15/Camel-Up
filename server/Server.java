@@ -208,10 +208,10 @@ public class Server {
 				res.type("application/json");
 			case "makeWinnerGlobalBet":
 				color = req.queryParams(COLOR_KEY);
-				game.placeWinnerGlobalBets(player, color);
+				game.placeWinnerGlobalBet(player, color);
 			case "makeLoserGlobalBet":
 				color = req.queryParams(COLOR_KEY);
-				game.placeLoserGlobalBets(player, color);
+				game.placeLoserGlobalBet(player, color);
 			case "trap":
 				res.body(gson.toJson(game.getTrap()));
 				res.type("application/json");
