@@ -21,6 +21,7 @@ public class Server {
 	static final String HOME_ROUTE = "/";
 	static final String DEV_ROUTE = "/dev";
 	static final String PLAYER_NAME_KEY = "uname";
+	static final String COLOR_KEY = "color";
 
 	
 	static Gson gson;
@@ -186,12 +187,21 @@ public class Server {
 				res.type("application/json");
 				break;
 			case "roll":
-				game.rollDie();
+				game.rollDie(player);
 				// and return the dice
 			case "dice":
 				res.body(gson.toJson(game.getDice()));
 				res.type("application/json");
 				break;
+			case "bet":
+				res.body(gson.toJson(game.getBet()));
+				res.type("application/json");
+			case "makeBet/":
+				String color = req.queryParams(COLOR_KEY);
+				game.placeBets(player, color);
+			case "globalBet/":
+				res.body(gson.toJson(game.getGlobalBet(player)));
+				res.type("application/json");
 			default:
 				res.body(game.toString());
 		}

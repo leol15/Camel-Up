@@ -263,8 +263,9 @@ public class CamelUp {
 		resolveGlobalBets();
 	}
 
-	////////////////
+	//////////////////////////////////////////////////////////////////////////
 	// observers
+	/////////////////////////////////////////////////
 	public Map<String, int[]> getCamels() {
 		Map<String, int[]> colorToPosition = new TreeMap<>();
 		for (Camel c : camels) {
@@ -286,6 +287,26 @@ public class CamelUp {
 		List<String> ret = new ArrayList<>();
 		for (int i : dice)
 			ret.add(COLORS[i]);
+		return ret;
+	}
+
+	public List<Bet> getBet() {
+		List<Bet> ret = new ArrayList<>();
+		for (String str : COLORS) {
+			if (!str.equals("BLACK") || !str.equals("WHITE")) {
+				if (!betTags.get(str).isEmpty()) {
+					ret.add(betTags.get(str).peek());
+				}
+			}
+		}
+		return ret;
+	}
+
+	public List<String> getGlobalBet(String player) {
+		List<String> ret = new ArrayList<>();
+		for (GlobalBet b : players.get(player).getGlobalBetTickets().values()) {
+			ret.add("Global Bet Token = " + b.color);
+		}
 		return ret;
 	}
 
@@ -482,6 +503,11 @@ public class CamelUp {
 		public Trap getTrap() {
 			return trap;
 		}
+
+		public Map<String, GlobalBet> getGlobalBetTickets() {
+			return globalBets;
+		}
+
 
 		// Called when a player bets on a camel
 		// @param color, a player chooses a color camel to bet on
