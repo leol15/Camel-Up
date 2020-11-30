@@ -173,6 +173,7 @@ public class Server {
 	public static void handleGameRequest(Request req, Response res, CamelUp game, String player) {
 		String action = req.queryParams("action");
 		action = action == null ? "" : action;
+		String color = "";
 		// autheticate player
 		switch (action) {
 			case PLAYER_NAME_KEY:
@@ -196,12 +197,18 @@ public class Server {
 			case "bet":
 				res.body(gson.toJson(game.getBet()));
 				res.type("application/json");
-			case "makeBet/":
-				String color = req.queryParams(COLOR_KEY);
+			case "makeBet":
+				color = req.queryParams(COLOR_KEY);
 				game.placeBets(player, color);
-			case "globalBet/":
+			case "globalBet":
 				res.body(gson.toJson(game.getGlobalBet(player)));
 				res.type("application/json");
+			case "makeWinnerGlobalBet":
+				color = req.queryParams(COLOR_KEY);
+				game.placeWinnerGlobalBets(player, color);
+			case "makeLoserGlobalBet":
+				color = req.queryParams(COLOR_KEY);
+				game.placeLoserGlobalBets(player, color);
 			default:
 				res.body(game.toString());
 		}

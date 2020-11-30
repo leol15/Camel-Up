@@ -16,7 +16,7 @@
 
 ### "/gamespeaks/[gameID]" - actions on gameID
 - params
-	- action=[dice, camels, roll, name, bet, makeBet, globalBet]
+	- action=[dice, camels, roll, name, bet, makeBet, globalBet, makeWinnerGlobalBet, makeLoserGlobalBet]
 		- [name], add player or change name, also include [PLAYER_NAME_KEY] and the name as param
 			- return the actual new name in text
 		- [dice], return all colors of active dice in JSON
@@ -26,5 +26,7 @@
 		- [makeBet], take the bet tag for a specified camel, also include [COLOR_KEY] as param
 		- [globalBet], return a list of strings with the global bet and the camel color
 			- a list of colors left in the players pile of global bets they can make
+		- [makeWinnerGlobalBet], places a bet on the specified camel
+		- [makeLoserGlobalBet], places a bet on the specified camel
 
 
