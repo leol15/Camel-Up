@@ -281,6 +281,7 @@ public class CamelUp {
 	}
 
 	public void reset() {
+		gameover();
 		for (List<Camel> list : playground) {
 			list.clear();
 		}

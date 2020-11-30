@@ -16,7 +16,7 @@
 
 ### "/gamespeaks/[gameID]" - actions on gameID
 - params
-	- action=[dice, camels, roll, name, bet, makeBet, globalBet, makeWinnerGlobalBet, makeLoserGlobalBet, trap]
+	- action=[dice, camels, roll, name, bet, makeBet, globalBet, makeWinnerGlobalBet, makeLoserGlobalBet, trap, placeTrap, reset]
 		- [name], add player or change name, also include [PLAYER_NAME_KEY] and the name as param
 			- return the actual new name in text
 		- [dice], return all colors of active dice in JSON
@@ -31,5 +31,6 @@
 		- [makeLoserGlobalBet], places a bet on the specified camel
 		- [trap], return a list of traps on the board
 		- [placeTrap], places a trap on the board
+		- [reset], resets the game to start state, players are untouched though.
 
 

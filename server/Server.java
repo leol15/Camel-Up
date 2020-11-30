@@ -222,6 +222,9 @@ public class Server {
 				int tile = Integer.parseInt(req.queryParams(TILE_KEY));
 				String scalar = req.queryParams(SCALAR_KEY);
 				game.placeTrap(player, tile, scalar.equals("boost"));
+			case "reset":
+				game.reset();
+
 			default:
 				res.body(game.toString());
 		}
