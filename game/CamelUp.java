@@ -38,7 +38,6 @@ public class CamelUp {
 	private String leading;
 	private String trailing;
 	private String last;
-
 	
 
 	@SuppressWarnings("unchecked")
@@ -131,10 +130,26 @@ public class CamelUp {
 			// Camel that is the furthest and heighest
 			gameover();
 		} else { // continue game if not end game
-			dice.remove(idx);
+			if (camels[dice.get(idx)].color.equals("BLACK") || 
+									camels[dice.get(idx)].color.equals("WHITE")) {
+				dice.remove(idx);
+				for (int i = 0; i < dice.size(); i++) {
+					if (camels[dice.get(i)].color.equals("BLACK") || 
+										camels[dice.get(i)].color.equals("WHITE")) {
+						dice.remove(i);
+						i = dice.size();
+					}
+				}
+			} else {
+				dice.remove(idx);
+			}
 			// end of round?
-			if (dice.size() == 1)
+			if (dice.size() == 2 && (camels[dice.get(0)].color.equals("BLACK") || 
+									camels[dice.get(0)].color.equals("WHITE"))) {
 				newRound();
+			} else if (dice.size() == 1) {
+				newRound();
+			}
 		}
 	}
 
