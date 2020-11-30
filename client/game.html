@@ -3,8 +3,54 @@
 <head>
 	<meta charset="utf-8">
 	<title>GAME</title>
+	<style type="text/css">
+		html, body {
+			padding: 0;
+			margin: 0;
+		}
+		* {
+			box-sizing: border-box;
+			font-family: monospace;
+		}
+
+		/*link banner*/
+		#banner {
+			font-size: 1.2em;
+			background-color: black;
+			color: white;
+			text-align: center;
+			padding: 15px;
+		}
+		#banner a:hover {
+			cursor: pointer;
+		}
+
+	</style>
 </head>
 <body>
+	<!-- display game link -->
+	<div id="banner" onclick="copyLinkAddress()"></div>
 	<h1>Wellcome!</h1>
+	<!-- pick name -->
+
+	<script type="text/javascript">
+		// fill banner with link address
+		let banner_el = document.getElementById('banner')
+		// get link name
+		let GAME_ID = window.location.pathname.split("/")[2]
+		banner_el.innerHTML = "Game link: <a>" + GAME_ID + "</a> (Click to copy)";
+		// dummy_link_el.style.display = "none";
+		function copyLinkAddress() {
+			let dummy_link_el = document.createElement("input");
+			dummy_link_el.value = window.location;
+			document.body.appendChild(dummy_link_el);
+			dummy_link_el.select();
+			dummy_link_el.setSelectionRange(0, 99999); /*For mobile devices*/
+			document.execCommand("copy");
+			dummy_link_el.remove();
+		}
+
+
+	</script>
 </body>
 </html>
