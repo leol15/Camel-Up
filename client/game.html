@@ -22,7 +22,7 @@
 
 		/*link banner*/
 		#banner {
-			font-size: 1.2em;
+			font-size: 2em;
 			background-color: black;
 			color: white;
 			text-align: center;
@@ -70,14 +70,16 @@
 			display: inline-block;
 			width: 5%;
 			height: calc(100% / 7);
-			transition: all 0.7s;
+			transition: all 1s;
+			transition-delay: 0.4s;
+			transition-timing-function: cubic-bezier(.84,-0.33,.38,1.06);
 		}
 	</style>
 </head>
 <body>
 	<!-- display game link -->
 	<div id="banner" onclick="copyLinkAddress()"></div>
-	<h1>Wellcome!</h1>
+	<h1>Wellcome! <a href="/">home</a></h1>
 	<!-- pick name -->
 	<div id="name-area">
 		<span>Name: </span><input onkeyup="createPlayer(this.value)" id="name-input" type="text" placeholder="pick a name" autofocus>
@@ -201,11 +203,7 @@
 				// update dice
 				updateDice(li)
 				// then get camels
-				getCamels().then(cams => {
-					setTimeout(() => {
-						updateCamels(cams)
-					}, 500)
-				})
+				getCamels().then(cams => updateCamels(cams))
 			})
 		}
 
