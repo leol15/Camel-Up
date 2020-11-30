@@ -5,6 +5,9 @@ import spark.Response;
 import spark.Spark;
 import spark.Filter;
 
+import java.net.URLEncoder;
+import java.net.URLDecoder;
+
 import java.util.HashMap;
 import java.util.*;
 import java.io.*;
@@ -118,14 +121,14 @@ public class Server {
 			if (req.splat().length == 0)
 				return "";
 			// connect request to specific room
+			// or return something like room does not exist
 			String roomLink = req.splat()[0];
 			if (!gamePool.containsKey(roomLink))
 				return "Room does not exist";
 			CamelUp game = gamePool.get(roomLink);
 			if (game == null)
 				return "Room does not exist";
-			// or return something like room does not exist
-
+			// fetch file
 			res.type("text/html"); 
 			res.body(readFileToString(ROOT_PATH + "/client/game.html"));
 			res.status(200);
@@ -138,14 +141,14 @@ public class Server {
 			// connect request to specific room
 			String roomLink = req.splat()[0];
 			if (!gamePool.containsKey(roomLink))
-				return "";
+				return "Room does not exist";
 			CamelUp game = gamePool.get(roomLink);
 			if (game == null)
-				return "";
-			// or return something like room does not exist
+				return "Room does not exist";
 			
 			// resolve player name first
 			String playerName = resolvePlayerName(req, res, game);
+			System.out.println("player name: " + playerName);
 			if (playerName == null)
 				return "authenticate failed, please create a name to play";
 			// handle request
@@ -231,6 +234,10 @@ public class Server {
 		if (action == null)
 			return null;
 		String oldName = req.cookie(PLAYER_NAME_KEY);
+		if (oldName != null) {
+			oldName = URLDecoder.decode(oldName);
+		}
+		System.out.println("old name is " + oldName);
 		if (!action.equals(PLAYER_NAME_KEY)) {
 			// name must exist
 			if (game.containsPlayer(oldName)) {
@@ -253,8 +260,9 @@ public class Server {
 			while (game.containsPlayer(newName)) {
 				newName += genRandomString(1);
 			}
+			System.out.println("changing name");
 			game.changePlayer(oldName, newName);
-			res.cookie(PLAYER_NAME_KEY, newName);
+			res.cookie(PLAYER_NAME_KEY, URLEncoder.encode(newName));
 			res.body(newName);
 			return newName;
 		} else {
@@ -264,10 +272,11 @@ public class Server {
 			}
 			// add!
 			if (game.addPlayer(newName)) {
-				res.cookie(PLAYER_NAME_KEY, newName);
+				res.cookie(PLAYER_NAME_KEY, URLEncoder.encode(newName));
 				res.body(newName);
 				return newName;
 			} else {
+				System.out.println("failed to add player " + newName);
 				res.removeCookie(PLAYER_NAME_KEY);
 				return null;
 			}

@@ -7,10 +7,17 @@
 		html, body {
 			padding: 0;
 			margin: 0;
+			background-color: #444;
+			color: #eee;
 		}
 		* {
 			box-sizing: border-box;
 			font-family: monospace;
+		}
+
+		/*debug*/
+		*:hover {
+			outline: 2px solid black;
 		}
 
 		/*link banner*/
@@ -34,6 +41,28 @@
 		#name-input {
 			text-align: center;
 		}
+
+		/* dice */
+		.die-el {
+			display: inline-block;
+			width: 40px;
+			height: 40px;
+			border: 2px solid white;
+		}
+
+		/* camels */
+		#camels-area {
+			height: 300px;
+			background-color: #999;
+			position: relative;
+		}
+		.camel-el {
+			position: absolute;
+			display: inline-block;
+			width: 5%;
+			height: calc(100% / 7);
+			transition: all 0.7s;
+		}
 	</style>
 </head>
 <body>
@@ -42,8 +71,32 @@
 	<h1>Wellcome!</h1>
 	<!-- pick name -->
 	<center>
-		<input onchange="sumbmitName(this)" id="name-input" type="text" placeholder="pick a name" autofocus>
+		<span>Name: </span><input onchange="createPlayer(this.value)" id="name-input" type="text" placeholder="pick a name" autofocus>
 	</center>
+
+	<!-- show game -->
+	<div id="dice-area">
+		<button onclick="makeRoll()">Roll</button>
+		<span>Dice Left</span>
+		<span class="die-el"></span>
+		<span class="die-el"></span>
+		<span class="die-el"></span>
+		<span class="die-el"></span>
+		<span class="die-el"></span>
+		<span class="die-el"></span>
+		<span class="die-el"></span>
+	</div>
+
+	<!-- camels -->
+	<div id="camels-area">
+		<span class="camel-el"></span>
+		<span class="camel-el"></span>
+		<span class="camel-el"></span>
+		<span class="camel-el"></span>
+		<span class="camel-el"></span>
+		<span class="camel-el"></span>
+		<span class="camel-el"></span>
+	</div>
 
 	<script type="text/javascript">
 		// fill banner with link address
@@ -63,7 +116,7 @@
 		}
 
 		// static final variables
-		let GAME_COMM_ROUTE = "gamespeaks/" + GAME_ID
+		let GAME_COMM_ROUTE = "gamespeaks/"
 		let NAME_KEY = "uname"
 		// getters
 		let DICE_KEY = "dice"
@@ -75,6 +128,9 @@
 		let MAKE_ROLL_KEY = "roll"
 		let MAKE_BET_KEY = "makeBet"
 
+		// url
+		let BASE_COMM_URL = window.location.origin + "/" + GAME_COMM_ROUTE + GAME_ID
+		console.log(BASE_COMM_URL)
 		let user_name = ""
 		// helpers
 		// return a promise, use then
@@ -103,20 +159,96 @@
 
 		// request using a game action		
 		function gameAction(action) {
-			return fetch_url(GAME_COMM_ROUTE + "?action=" + action);
+			return fetch_url(BASE_COMM_URL + "?action=" + encodeURI(action));
 		}
 
 		// set uname send address
-		function sumbmitName(form) {
+		function createPlayer(name) {
 			// body...
-			console.log(form.value)
-			gameAction(NAME_KEY + "&" + NAME_KEY + "=" + form.value)
+			// console.log(window.location)
+			gameAction(NAME_KEY + "&" + NAME_KEY + "=" + name)
 				.then(name => {
+					console.log("new name is " + name)
 					user_name = name;
-					console.log(name)
+					////// start of game!
+					initGame();
 				})
 		}
 
+		// getters
+		function getPlayer() {
+			return gameAction(PLAYERS_KEY)
+		}
+
+		function getCamels() {
+			return gameAction(CAMELS_KEY)
+		}
+
+		function getDice() {
+			return gameAction(DICE_KEY)
+		}
+
+		// actions
+		function makeRoll() {
+			gameAction(MAKE_ROLL_KEY).then(li => updateDice(li))
+			getCamels().then(cams => updateCamels(cams))
+		}
+
+		COLOR_KEYS = ["RED", "GREEN", "BLUE", "BLACK", "WHITE", "PURPLE", "GOLD"]
+		// game states
+		var dice_el = document.querySelectorAll(".die-el")
+		var camels_el = document.querySelectorAll('.camel-el')
+		var dice_list = []
+		var players_list = []
+
+		// helpers ------------------------
+
+		var updateDice = (avaliables) => {
+			if (dice_list.length === 0) {
+					dice_list = avaliables;
+					// init colors
+					for (var i = 0; i < dice_list.length; i++) {
+						dice_el[i].style.backgroundColor = dice_list[i];
+					}
+				}
+				// update
+				for (var i = 0; i < dice_list.length; i++) {
+					if (avaliables.includes(dice_list[i])) {
+						dice_el[i].style.display = "inline-block"
+					} else {
+						dice_el[i].style.display = "none"
+						console.log("hidding")
+					}
+				}
+		} 
+
+		// color maps to location
+		var updateCamels = (cam) => {
+			for (var i = 0; i < COLOR_KEYS.length; i++) {
+				var left = cam[COLOR_KEYS[i]][0] / 20 * 100
+				camels_el[i].style.left = left + "%"
+				var bottom = cam[COLOR_KEYS[i]][1] / 7 * 100
+				camels_el[i].style.bottom = bottom + "%"
+			}
+		}
+
+
+		// start of game
+
+		function initGame() {
+			// body...
+			// fetch everything
+			// dice
+			getDice().then(li => updateDice(li));
+			// camels
+			for (var i = 0; i < COLOR_KEYS.length; i++) {
+				camels_el[i].style.backgroundColor = COLOR_KEYS[i];
+			}
+			
+			getCamels().then(cam => updateCamels(cam));
+		}
+
+		
 
 	</script>
 </body>
