@@ -317,8 +317,8 @@ public class CamelUp {
 		// for the camels that go backwards
 		private int mult = 1;
 
-		public Camel(String col, List<Camel>[] playground, Random r, Map<Integer, Trap> traps, int index, int scaler) {
-			//this(col, playground, r);
+		public Camel(String col, List<Camel>[] playground, Random r, 
+						Map<Integer, Trap> traps, int index, int scaler) {
 			this.color = col;
 			this.playground = playground;
 			this.traps = traps;
@@ -331,12 +331,6 @@ public class CamelUp {
 
 		public Camel(String col, List<Camel>[] playground, Random r, Map<Integer, Trap> traps) {
 			this(col, playground, r, traps, 0, 1);
-			// this.color = col;
-			// this.playground = playground;
-			// // add self
-			// this.index = (1 + r.nextInt(3));
-			// playground[this.index].add(this);
-			// this.height = playground[index].size() - 1;
 		}
 
 		public void rollDie(Random r) {
@@ -359,8 +353,9 @@ public class CamelUp {
 			// end of line
 			// move everything
 			if (this.index == newIdx && height == 0) {
-				// Do nothing
+				// Do nothing 
 			} else if (this.index == newIdx) {
+				// If camel is pushed back then it is modified the stacking order
 				Stack<Camel> temp = new Stack<>();
 				for (int i = height; i < playground[this.index].size(); i++)
 					temp.push(playground[this.index].get(i));
@@ -373,7 +368,6 @@ public class CamelUp {
 				// Put the camels at the bottom of this tile
 				while (!temp.isEmpty()) {
 					playground[this.index].add(0, temp.pop());
-					//playground[this.index].get(i).insertAt(0);
 				}
 				
 				// Update the new heights of the camels
@@ -396,10 +390,12 @@ public class CamelUp {
 			return index;
 		}
 
+		// Return the height of the camel
 		public int rank() {
 			return height;
 		}
 
+		// Return the camel color
 		public String color() {
 			return color;
 		}
@@ -478,6 +474,7 @@ public class CamelUp {
 			coin++;
 		}
 
+		// Any better way to do this?
 		public void addCoin(int val) {
 			coin += val;
 		}
