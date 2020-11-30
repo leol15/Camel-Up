@@ -340,6 +340,14 @@ public class CamelUp {
 		return ret;
 	}
 
+	public Map<String, Integer> getPlayerScore() {
+		Map<String, Integer> ret = new HashMap<>();
+		for (Map.Entry<String, Player> kv : players.entrySet()) {
+			ret.put(kv.getKey(), kv.getValue().getScore());
+		}
+		return ret;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -547,6 +555,9 @@ public class CamelUp {
 			return globalBets;
 		}
 
+		public int getScore() {
+			return coin;
+		}
 
 		// Called when a player bets on a camel
 		// @param color, a player chooses a color camel to bet on
