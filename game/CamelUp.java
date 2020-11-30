@@ -302,10 +302,25 @@ public class CamelUp {
 		return ret;
 	}
 
-	public List<String> getGlobalBet(String player) {
-		List<String> ret = new ArrayList<>();
+	public List<GlobalBet> getGlobalBet(String player) {
+		List<GlobalBet> ret = new ArrayList<>();
 		for (GlobalBet b : players.get(player).getGlobalBetTickets().values()) {
-			ret.add("Global Bet Token = " + b.color);
+			ret.add(b);
+			// ret.add("Global Bet Token = " + b.color);
+		}
+		return ret;
+	}
+
+	public List<Trap> getTrap() {
+		// List<String> ret = new ArrayList<>();
+		// for (Trap t : traps.values()) {
+		// 	ret.add(t.getPlayer() + " has a trap at " + t.tile + " and it is a " + t.getValue() );
+		// }
+		// return ret;
+
+		List<Trap> ret = new ArrayList<>();
+		for (Trap t : traps.values()) {
+			ret.add(t);
 		}
 		return ret;
 	}
@@ -583,6 +598,10 @@ public class CamelUp {
 
 		public String getPlayer() {
 			return player;
+		}
+
+		public int getValue() {
+			return value;
 		}
 	}
 }

@@ -22,6 +22,9 @@ public class Server {
 	static final String DEV_ROUTE = "/dev";
 	static final String PLAYER_NAME_KEY = "uname";
 	static final String COLOR_KEY = "color";
+	static final String TILE_KEY = "tile";
+	static final String SCALAR_KEY = "scalar";
+	static final String SCALAR_VALUE = "boost"; // boost == +1, otherwise it is -1
 
 	
 	static Gson gson;
@@ -209,6 +212,13 @@ public class Server {
 			case "makeLoserGlobalBet":
 				color = req.queryParams(COLOR_KEY);
 				game.placeLoserGlobalBets(player, color);
+			case "trap":
+				res.body(gson.toJson(game.getTrap()));
+				res.type("application/json");
+			case "placeTrap":
+				int tile = Integer.parseInt(req.queryParams(TILE_KEY));
+				String scalar = req.queryParams(SCALAR_KEY);
+				game.placeTrap(player, tile, scalar.equals("boost"));
 			default:
 				res.body(game.toString());
 		}
