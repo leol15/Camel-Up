@@ -237,7 +237,6 @@ public class Server {
 		if (oldName != null) {
 			oldName = URLDecoder.decode(oldName);
 		}
-		System.out.println("old name is " + oldName);
 		if (!action.equals(PLAYER_NAME_KEY)) {
 			// name must exist
 			if (game.containsPlayer(oldName)) {

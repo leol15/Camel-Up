@@ -17,7 +17,7 @@
 
 		/*debug*/
 		*:hover {
-			outline: 2px solid black;
+			outline: 1px solid red;
 		}
 
 		/*link banner*/
@@ -38,15 +38,22 @@
 		}
 
 		/*pick name*/
+		#name-area {
+			padding: 10px;
+			text-align: center;
+		}
 		#name-input {
 			text-align: center;
 		}
 
 		/* dice */
 		.die-el {
+			opacity: 1;
+			transition: all 0.7s;
 			display: inline-block;
 			width: 40px;
 			height: 40px;
+			border-radius: 4px;
 			border: 2px solid white;
 		}
 
@@ -58,6 +65,8 @@
 		}
 		.camel-el {
 			position: absolute;
+			left: 0%;
+			bottom: 0%;
 			display: inline-block;
 			width: 5%;
 			height: calc(100% / 7);
@@ -70,9 +79,9 @@
 	<div id="banner" onclick="copyLinkAddress()"></div>
 	<h1>Wellcome!</h1>
 	<!-- pick name -->
-	<center>
-		<span>Name: </span><input onchange="createPlayer(this.value)" id="name-input" type="text" placeholder="pick a name" autofocus>
-	</center>
+	<div id="name-area">
+		<span>Name: </span><input onkeyup="createPlayer(this.value)" id="name-input" type="text" placeholder="pick a name" autofocus>
+	</div>
 
 	<!-- show game -->
 	<div id="dice-area">
@@ -104,7 +113,6 @@
 		// get link name
 		let GAME_ID = window.location.pathname.split("/")[2]
 		banner_el.innerHTML = "Game link: " + GAME_ID + " (Click to copy)";
-		// dummy_link_el.style.display = "none";
 		function copyLinkAddress() {
 			let dummy_link_el = document.createElement("input");
 			dummy_link_el.value = window.location;
@@ -136,7 +144,7 @@
 		// return a promise, use then
 		// will try to consume a json or text
 		function fetch_url(url) {
-			console.log("fetching [" + url + "]")
+			// console.log("fetching [" + url + "]")
 			return fetch(url)
 				.then(res => {
 					let type = res.headers.get('content-type')
@@ -149,9 +157,8 @@
 					}
 				})
 				.then(thing => {
-					console.log("v.v.v.v.v")
+					console.log("Response:")
 					console.log(thing);
-					console.log("^.^.^.^.^")
 					return thing
 				})
 				.catch(err => console.log(err));
@@ -164,15 +171,15 @@
 
 		// set uname send address
 		function createPlayer(name) {
-			// body...
-			// console.log(window.location)
-			gameAction(NAME_KEY + "&" + NAME_KEY + "=" + name)
-				.then(name => {
-					console.log("new name is " + name)
-					user_name = name;
-					////// start of game!
-					initGame();
-				})
+			if (event.key === "Enter" || event.keyCode === 12) {
+				gameAction(NAME_KEY + "&" + NAME_KEY + "=" + name)
+					.then(name => {
+						console.log("new name is " + name)
+						user_name = name;
+						////// start of game!
+						initGame();
+					})
+			}
 		}
 
 		// getters
@@ -190,36 +197,42 @@
 
 		// actions
 		function makeRoll() {
-			gameAction(MAKE_ROLL_KEY).then(li => updateDice(li))
-			getCamels().then(cams => updateCamels(cams))
+			gameAction(MAKE_ROLL_KEY).then(li => {
+				// update dice
+				updateDice(li)
+				// then get camels
+				getCamels().then(cams => {
+					setTimeout(() => {
+						updateCamels(cams)
+					}, 500)
+				})
+			})
 		}
 
 		COLOR_KEYS = ["RED", "GREEN", "BLUE", "BLACK", "WHITE", "PURPLE", "GOLD"]
 		// game states
-		var dice_el = document.querySelectorAll(".die-el")
+		const dice_el = document.querySelectorAll(".die-el")
 		var camels_el = document.querySelectorAll('.camel-el')
-		var dice_list = []
+		// initialize
+		for (var i = 0; i < COLOR_KEYS.length; i++) {
+			dice_el[i].style.backgroundColor = COLOR_KEYS[i];
+		}
+		for (var i = 0; i < COLOR_KEYS.length; i++) {
+			camels_el[i].style.backgroundColor = COLOR_KEYS[i];
+		}
 		var players_list = []
 
 		// helpers ------------------------
 
 		var updateDice = (avaliables) => {
-			if (dice_list.length === 0) {
-					dice_list = avaliables;
-					// init colors
-					for (var i = 0; i < dice_list.length; i++) {
-						dice_el[i].style.backgroundColor = dice_list[i];
-					}
+			// update
+			for (var i = 0; i < COLOR_KEYS.length; i++) {
+				if (avaliables.includes(COLOR_KEYS[i])) {
+					dice_el[i].style.opacity = 1
+				} else {
+					dice_el[i].style.opacity = 0.1
 				}
-				// update
-				for (var i = 0; i < dice_list.length; i++) {
-					if (avaliables.includes(dice_list[i])) {
-						dice_el[i].style.display = "inline-block"
-					} else {
-						dice_el[i].style.display = "none"
-						console.log("hidding")
-					}
-				}
+			}
 		} 
 
 		// color maps to location
@@ -241,10 +254,6 @@
 			// dice
 			getDice().then(li => updateDice(li));
 			// camels
-			for (var i = 0; i < COLOR_KEYS.length; i++) {
-				camels_el[i].style.backgroundColor = COLOR_KEYS[i];
-			}
-			
 			getCamels().then(cam => updateCamels(cam));
 		}
 
