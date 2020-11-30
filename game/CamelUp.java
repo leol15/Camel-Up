@@ -347,17 +347,48 @@ public class CamelUp {
 			// new index
 			int newIdx = index + (1 + r.nextInt(DICE_MAX)) * mult;
 			newIdx = Math.max(0, Math.min(LAST_TILE - 1, newIdx));
+
+			// Check if index has a trap
+			if (traps.containsKey(newIdx)) {
+				newIdx += traps.get(newIdx).value;
+				players.get(traps.get(newIdx).getPlayer()).addCoin(1);
+			}
+
 			System.out.println(this + ": moving to " + newIdx);
 
 			// end of line
 			// move everything
-			int oldIdx = this.index;
-			int oldHeight = height;
-			for (int i = height; i < playground[oldIdx].size(); i++)
-				playground[oldIdx].get(i).insertAt(newIdx);
-			// remove
-			while (oldHeight < playground[oldIdx].size())
-				playground[oldIdx].remove(oldHeight);
+			if (this.index == newIdx && height == 0) {
+				// Do nothing
+			} else if (this.index == newIdx) {
+				Stack<Camel> temp = new Stack<>();
+				for (int i = height; i < playground[this.index].size(); i++)
+					temp.push(playground[this.index].get(i));
+				
+				// Remove camels on this list
+				for (int i = 0; i < temp.size(); i++) {
+					playground[this.index].remove(height);
+				}
+
+				// Put the camels at the bottom of this tile
+				while (!temp.isEmpty()) {
+					playground[this.index].add(0, temp.pop());
+					//playground[this.index].get(i).insertAt(0);
+				}
+				
+				// Update the new heights of the camels
+				for (int i = 0; i < playground[this.index].size(); i++) {
+					playground[this.index].get(i).height = i;
+				}
+			} else {
+				int oldIdx = this.index;
+				int oldHeight = height;
+				for (int i = height; i < playground[oldIdx].size(); i++)
+					playground[oldIdx].get(i).insertAt(newIdx);
+				// remove
+				while (oldHeight < playground[oldIdx].size())
+					playground[oldIdx].remove(oldHeight);
+			}
 		}
 
 		// return the position of the camel
@@ -525,6 +556,10 @@ public class CamelUp {
 
 		public int getTile() {
 			return tile;
+		}
+
+		public String getPlayer() {
+			return player;
 		}
 	}
 }
