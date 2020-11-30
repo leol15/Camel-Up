@@ -252,6 +252,7 @@ public class CamelUp {
 			} else {
 				players.get(b.player).addCoin(-1);
 			}
+			players.get(b.player).globalBets.put(b.color, b);
 		}
 		q.clear();
 	}
@@ -261,6 +262,20 @@ public class CamelUp {
 		updateLeaderBoard();
 		refreshBettingTags();
 		resolveGlobalBets();
+		clearTrap();
+	}
+
+	public void reset() {
+		for (List<Camel> list : playground) {
+			list.clear();
+		}
+		for (Camel c : camels) {
+			c.reset();
+		}
+		for (Player p : players.values()) {
+			p.reset();
+		}
+		updateLeaderBoard();
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -345,10 +360,11 @@ public class CamelUp {
 		// states
 		private String color;
 		private List<Camel>[] playground;
+		private int start; // the start of every game
 		private int index; // the index in playground
 		private int height; // the height in playground 0 - 6
 		Map<Integer, Trap> traps;
-		
+		private Random r;
 
 		// for the camels that go backwards
 		private int mult = 1;
@@ -358,6 +374,8 @@ public class CamelUp {
 			this.color = col;
 			this.playground = playground;
 			this.traps = traps;
+			this.r = r;
+			this.start = index;
 			// add self
 			this.index = index + scaler * (1 + r.nextInt(DICE_MAX));
 			playground[this.index].add(this);
@@ -442,6 +460,12 @@ public class CamelUp {
 			this.index = index;
 			playground[index].add(this);
 			this.height = playground[index].size() - 1;
+		}
+
+		public void reset() {
+			this.index = start + mult * (1 + r.nextInt(DICE_MAX));
+			playground[this.index].add(this);
+			this.height = playground[this.index].size() - 1;
 		}
 
 		@Override
@@ -568,6 +592,10 @@ public class CamelUp {
 				return true;
 			}
 			return false;
+		}
+
+		public void reset() {
+			coin = 3;
 		}
 
 		@Override
