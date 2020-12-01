@@ -7,10 +7,11 @@ public class CamelUp {
 		"RED", "GREEN", "BLUE", "BLACK", "WHITE", "PURPLE", "GOLD"
 	};
 	public static final int[] WINNINGS = {8, 5, 3, 2, 1, 0, 0, 0};
+	public static final int[] BET_VALUES = {5, 3, 2, 2};
 	public static final int MAX_PLAYERS = 8;
 	public static final int LAST_TILE = 20;
 	public static final int DICE_MAX = 3;
-	public static final int BET_MAX = 4;
+	//public static final int BET_MAX = 4;
 
 	// states
 	private Random rand;
@@ -35,23 +36,33 @@ public class CamelUp {
 	// private Trap[] traps;
 	private Map<Integer, Trap> traps;
 
-	private String leading;
-	private String trailing;
-	private String last;
+	// Keeps track of the ranking of the camels
+	private String[] ranking;
 	
 
 	@SuppressWarnings("unchecked")
 	public CamelUp() {
 		rand = new Random();
-		traps = new HashMap<>();
 		dice = new ArrayList<>();
+		playground = new List[LAST_TILE];
+		camels = new Camel[COLORS.length];
+		players = new HashMap<>();
+		betTags = new HashMap<>();
+		traps = new HashMap<>();
+		biggestWinner = new LinkedList<>();
+		biggestLoser = new LinkedList<>();
+		ranking = new String[COLORS.length - 2];
+
+		// Setting up the dice
 		for (int i = 0; i < COLORS.length; i++)
 			dice.add(i);
-		playground = new List[LAST_TILE];
+		
+		// Setting up the board
 		for (int i = 0; i < playground.length; i++) {
 			playground[i] = new ArrayList<>();
 		}
-		camels = new Camel[COLORS.length];
+
+		// Setting up each camel
 		for (int i = 0; i < COLORS.length; i++) {
 			if (COLORS[i].equals("BLACK") || COLORS[i].equals("WHITE")) {
 				camels[i] = new Camel(COLORS[i], playground, rand, traps, LAST_TILE, -1);
@@ -63,25 +74,24 @@ public class CamelUp {
 		// Instantiates the betting system.
 		// Bets range from 5 - 2 (there are 4 tags per color)
 		// Cannot bet on Black or White camels
-		betTags = new HashMap<>();
 		for (String str : COLORS) {
 			if (!str.equals("BLACK") && !str.equals("WHITE")) {
-				Queue<Bet> currBet = new PriorityQueue<>(BET_MAX, new Comparator<Bet>(){
+				// Set up the sorting for the bet tags so that it is easier to just insert the bet
+				// tags after each round rather than needing to sort them myself.
+				Queue<Bet> currBet = new PriorityQueue<>(BET_VALUES.length, new Comparator<Bet>(){
 						public int compare(Bet b1, Bet b2) {
 							return b2.value - b1.value;
 						}
 				});
-				currBet.add(new Bet(str, 5));
-				currBet.add(new Bet(str, 3));
-				currBet.add(new Bet(str, 2));
-				currBet.add(new Bet(str, 2));
+				for (int i : BET_VALUES) {
+					currBet.add(new Bet(str, i));
+				}
 				betTags.put(str, currBet);
 			}
 		}
 
-		players = new HashMap<>();
-
-		sortCamel = new PriorityQueue<>(5, new Comparator<Camel>(){
+		// Setting up sort camel priority queue for updating the leader board
+		sortCamel = new PriorityQueue<>(COLORS.length - 2, new Comparator<Camel>(){
 			public int compare(Camel c1, Camel c2) {
 				if (c1.position() != c2.position()) {
 					return c2.position() - c1.position();
@@ -90,14 +100,14 @@ public class CamelUp {
 				}
 			}
 		});
-
-		biggestWinner = new LinkedList<>();
-		biggestLoser = new LinkedList<>();
-
-		// traps = new Trap[LAST_TILE];
-		
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	//			Player Actions
+	////////////////////////////////////////////////////////////////////////////////////
+
+	// Add a player to the game
+	// A player is added if a name is provided
 	public boolean addPlayer(String name) {
 		if (MAX_PLAYERS == players.size()) {
 			return false;
@@ -106,10 +116,13 @@ public class CamelUp {
 		return true;
 	}
 
+	// Check to see if this player name is already taken
+	// Used by the server to make sure unique names are chosen
 	public boolean containsPlayer(String name) {
 		return players.containsKey(name);
 	}
 
+	// If a player wants to change their name they are able to
 	public void changePlayer(String old, String newName) {
 		players.get(old).changeName(newName);
 		players.put(newName, players.get(old));
@@ -130,6 +143,8 @@ public class CamelUp {
 			// Camel that is the furthest and heighest
 			gameover();
 		} else { // continue game if not end game
+			// This part is so that only 1 of the black or white camels is rolled in a
+			// round if one is rolled
 			if (camels[dice.get(idx)].color.equals("BLACK") || 
 									camels[dice.get(idx)].color.equals("WHITE")) {
 				dice.remove(idx);
@@ -143,7 +158,8 @@ public class CamelUp {
 			} else {
 				dice.remove(idx);
 			}
-			// end of round?
+
+			// End the round after 5 dice have been rolled
 			if (dice.size() == 2 && (camels[dice.get(0)].color.equals("BLACK") || 
 									camels[dice.get(0)].color.equals("WHITE"))) {
 				newRound();
@@ -155,12 +171,13 @@ public class CamelUp {
 
 	// Communicates with the server about which player rolled a dice
 	// Player who rolled the dice gets 1 coin
+	// TODO: refactor so roll die takes a player. 
 	public void rollDie(String player) {
 		rollDie();
 		players.get(player).rollDie();
 	}
 
-	// A player can choose to place a bet on a camel
+	// A player can choose to place a bet on a camel (bets that last 1 round)
 	public boolean placeBets(String player, String color) {
 		// Shouldn't be allowed to do that but if they do...
 		if (color.equals("BLACK") || color.equals("WHITE")) {
@@ -211,50 +228,52 @@ public class CamelUp {
 		return true;
 	}
 
-	// state change
-	public void newRound() {
-		dice.clear();
-		for (int i = 0; i < COLORS.length; i++)
-			dice.add(i);
-
-		updateLeaderBoard();
-		refreshBettingTags();
-		clearTrap();
-	}
-
-	public void clearTrap() {
-		for (Trap t : traps.values()) {
-			t.changeTrap(0, 0);
-		}
-		traps.clear();
-	}
-
 	// Sorts the camels and finds the first place camel and the second place camel
 	public void updateLeaderBoard() {
 		for (Camel c : camels) {
 			sortCamel.add(c);
 		}
-		leading = sortCamel.poll().color();
-		trailing = sortCamel.poll().color();
-		
-		// 3rd and 4th place
-		sortCamel.poll();
-		sortCamel.poll();
+		for (int i = 0; i < ranking.length; i++) {
+			ranking[i] = sortCamel.poll().color();
+		}
+	}
 
-		last = sortCamel.poll().color();
+	// Reset the game to the beginning of the game.
+	public void reset() {
+		gameover();
+		for (List<Camel> list : playground) {
+			list.clear();
+		}
+		for (Camel c : camels) {
+			c.reset();
+		}
+		for (Player p : players.values()) {
+			p.reset();
+		}
+		updateLeaderBoard();
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	//    Private Helper Methods
+	////////////////////////////////////////////////////////////////////////////////////
+
+	private void diceReset() {
+		dice.clear();
+		for (int i = 0; i < COLORS.length; i++)
+			dice.add(i);
 	}
 
 	// Resolves all the betting tags of the players
 	private void refreshBettingTags() {
 		for (Map.Entry<String, Player> p : players.entrySet()) {
-			p.getValue().resolveBets(leading, trailing);
+			p.getValue().resolveBets(ranking[0], ranking[1]);
 		}
 	}
 
-	// Implemented the globalBetting resolving.
+	// Resolves all the global bets made and is called at the end of the game
 	private void resolveGlobalBets() {
-		resolveGlobalBetsHelper(biggestWinner, leading);
-		resolveGlobalBetsHelper(biggestLoser, last);
+		resolveGlobalBetsHelper(biggestWinner, ranking[0]);
+		resolveGlobalBetsHelper(biggestLoser, ranking[ranking.length - 1]);
 	}
 	
 	// Refactored redundant code to make it work for winner or loser
@@ -272,26 +291,30 @@ public class CamelUp {
 		q.clear();
 	}
 
-	// End game situation
-	public void gameover() {
+	// Resets the traps after every round
+	private void clearTrap() {
+		for (Trap t : traps.values()) {
+			t.changeTrap(0, 0);
+		}
+		traps.clear();
+	}
+
+	// End game situation, resolve everything that involves points
+	private void gameover() {
 		updateLeaderBoard();
 		refreshBettingTags();
 		resolveGlobalBets();
 		clearTrap();
 	}
 
-	public void reset() {
-		gameover();
-		for (List<Camel> list : playground) {
-			list.clear();
-		}
-		for (Camel c : camels) {
-			c.reset();
-		}
-		for (Player p : players.values()) {
-			p.reset();
-		}
+	// state change
+	// resets the dice, updates which camel is in the lead
+	// 
+	private void newRound() {
+		diceReset();
 		updateLeaderBoard();
+		refreshBettingTags();
+		clearTrap();
 	}
 
 	//////////////////////////////////////////////////////////////////////////
