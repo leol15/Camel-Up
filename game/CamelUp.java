@@ -401,23 +401,28 @@ public class CamelUp {
 	}
 
 
+	/////////////////////////////////////////////////////////////////////////////////////
+	// 			Objects used to keep track of game data 
+	/////////////////////////////////////////////////////////////////////////////////////
+
 	// internal Camel class
 	private class Camel {
 
 		// states
 		private String color;
+		private int start;      // the start of every game
+		private int index; 		// the index in playground
+		private int height;     // the height in playground 0 - 6
+		private int mult = 1;   // for the camels that go backwards
+
+		// Camel's own references to overal game objects
 		private List<Camel>[] playground;
-		private int start; // the start of every game
-		private int index; // the index in playground
-		private int height; // the height in playground 0 - 6
-		Map<Integer, Trap> traps;
+		private Map<Integer, Trap> traps;
 		private Random r;
 
-		// for the camels that go backwards
-		private int mult = 1;
 
 		public Camel(String col, List<Camel>[] playground, Random r, 
-						Map<Integer, Trap> traps, int index, int scaler) {
+								Map<Integer, Trap> traps, int index, int scaler) {
 			this.color = col;
 			this.playground = playground;
 			this.traps = traps;
@@ -433,7 +438,7 @@ public class CamelUp {
 		public Camel(String col, List<Camel>[] playground, Random r, Map<Integer, Trap> traps) {
 			this(col, playground, r, traps, 0, 1);
 		}
-
+		
 		public void rollDie(Random r) {
 			System.out.println(this + ": moving");
 			// already at end??
@@ -486,6 +491,16 @@ public class CamelUp {
 			}
 		}
 
+		public void reset() {
+			this.index = start + mult * (1 + r.nextInt(DICE_MAX));
+			playground[this.index].add(this);
+			this.height = playground[this.index].size() - 1;
+		}
+
+		///////////////////
+		// Getter methods
+		//////////////////
+
 		// return the position of the camel
 		public int position() {
 			return index;
@@ -509,45 +524,9 @@ public class CamelUp {
 			this.height = playground[index].size() - 1;
 		}
 
-		public void reset() {
-			this.index = start + mult * (1 + r.nextInt(DICE_MAX));
-			playground[this.index].add(this);
-			this.height = playground[this.index].size() - 1;
-		}
-
 		@Override
 		public String toString() {
 			return "Camel [" + color + "] at [" + index + "]" + "[" + height + "]"; 
-		}
-	}
-
-	
-	// Bet keeps track of color and value
-	// Color to place it back into our betting management system
-	// Value so each player knows how many coins they win if they do win
-	private class Bet {
-		String color;
-		int value;
-		
-		public Bet(String color, int value) {
-			this.color = color;
-			this.value = value;
-		}
-
-		// class BetComparator implements Comparator<Bet>{
-		// 	public int compare(Bet b1, Bet b2) {
-		// 		return b2.value - b1.value;
-		// 	}
-		// }
-	}
-
-	private class GlobalBet {
-		String color;
-		String player;
-
-		public GlobalBet(String player, String color) {
-			this.player = player;
-			this.color = color;
 		}
 	}
 
@@ -584,18 +563,6 @@ public class CamelUp {
 		// Any better way to do this?
 		public void addCoin(int val) {
 			coin += val;
-		}
-
-		public Trap getTrap() {
-			return trap;
-		}
-
-		public Map<String, GlobalBet> getGlobalBetTickets() {
-			return globalBets;
-		}
-
-		public int getScore() {
-			return coin;
 		}
 
 		// Called when a player bets on a camel
@@ -648,9 +615,54 @@ public class CamelUp {
 			coin = 3;
 		}
 
+		////////////////////
+		//   Getter methods
+		///////////////////
+
+		public Trap getTrap() {
+			return trap;
+		}
+
+		public Map<String, GlobalBet> getGlobalBetTickets() {
+			return globalBets;
+		}
+
+		public int getScore() {
+			return coin;
+		}
+
 		@Override
 		public String toString() {
 			return name + " and has $" + coin;
+		}
+	}
+	
+	// Bet keeps track of color and value
+	// Color to place it back into our betting management system
+	// Value so each player knows how many coins they win if they do win
+	private class Bet {
+		String color;
+		int value;
+		
+		public Bet(String color, int value) {
+			this.color = color;
+			this.value = value;
+		}
+
+		// class BetComparator implements Comparator<Bet>{
+		// 	public int compare(Bet b1, Bet b2) {
+		// 		return b2.value - b1.value;
+		// 	}
+		// }
+	}
+
+	private class GlobalBet {
+		String color;
+		String player;
+
+		public GlobalBet(String player, String color) {
+			this.player = player;
+			this.color = color;
 		}
 	}
 	
