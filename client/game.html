@@ -47,6 +47,11 @@
 		}
 		#name-input {
 			text-align: center;
+			transition: all 1s;
+		}
+		#name-input:focus {
+			box-shadow: 0 0 60px #eee;
+			filter: hue-rotate(360deg);
 		}
 
 		/* players */
@@ -202,6 +207,7 @@
 			<span class="bet-el active" onclick="placeBet(this)"></span>
 			<span class="bet-el active" onclick="placeBet(this)"></span>
 		</div>
+		<button onclick="placeTrap(1)">Put trap</button>
 	</div>
 
 	<script type="text/javascript">
@@ -296,6 +302,10 @@
 			return gameAction("bet")
 		}
 
+		function getTrap() {
+			return gameAction("trap")
+		}
+
 		// actions
 		function makeRoll() {
 			gameAction(MAKE_ROLL_KEY).then(li => {
@@ -316,6 +326,12 @@
 					updateBets(bets)
 					getPlayers().then(p => updatePlayers(p))
 				})
+		}
+
+		// place a trap
+		function placeTrap(tile, boost="boost") {
+			gameAction("placeTrap&tile=" + tile + "&scalar=" + boost)
+				.then(traps => updateTraps(traps))
 		}
 
 		function resetGame() {
@@ -397,6 +413,11 @@
 			}
 		}
 
+		// show traps
+		var updateTraps = (traps) => {
+			console.log(traps)
+		}
+
 		// name, coin
 		function showPlayer(player) {
 			// creat elements
@@ -446,6 +467,8 @@
 			getPlayers().then(p => updatePlayers(p))
 			// show bets
 			getBet().then(b => updateBets(b))
+			// show traps
+			getTrap().then(t => console.log(t))
 		}
 
 		// auto start/login
