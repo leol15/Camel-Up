@@ -200,28 +200,35 @@ public class Server {
 				res.body(gson.toJson(game.getDice()));
 				res.type("application/json");
 				break;
-			case "bet":
-				res.body(gson.toJson(game.getBet()));
-				res.type("application/json");
 			case "makeBet":
 				color = req.queryParams(COLOR_KEY);
 				game.placeBets(player, color);
+				// pass to "bet"
+			case "bet":
+				res.body(gson.toJson(game.getBet()));
+				res.type("application/json");
+				break;
 			case "globalBet":
 				res.body(gson.toJson(game.getGlobalBet(player)));
 				res.type("application/json");
+				break;
 			case "makeWinnerGlobalBet":
 				color = req.queryParams(COLOR_KEY);
 				game.placeWinnerGlobalBet(player, color);
+				break;
 			case "makeLoserGlobalBet":
 				color = req.queryParams(COLOR_KEY);
 				game.placeLoserGlobalBet(player, color);
-			case "trap":
-				res.body(gson.toJson(game.getTrap()));
-				res.type("application/json");
+				break;
 			case "placeTrap":
 				int tile = Integer.parseInt(req.queryParams(TILE_KEY));
 				String scalar = req.queryParams(SCALAR_KEY);
 				game.placeTrap(player, tile, scalar.equals("boost"));
+				// pass on to "trap"
+			case "trap":
+				res.body(gson.toJson(game.getTrap()));
+				res.type("application/json");
+				break;
 			case "reset":
 				game.reset();
 

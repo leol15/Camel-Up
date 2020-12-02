@@ -180,6 +180,7 @@ public class CamelUp {
 	// A player can choose to place a bet on a camel (bets that last 1 round)
 	public boolean placeBets(String player, String color) {
 		// Shouldn't be allowed to do that but if they do...
+		color = color.toUpperCase();
 		if (color.equals("BLACK") || color.equals("WHITE")) {
 			return false;
 		}
@@ -349,7 +350,7 @@ public class CamelUp {
 		List<Bet> ret = new ArrayList<>();
 		for (String str : COLORS) {
 			if (!str.equals("BLACK") || !str.equals("WHITE")) {
-				if (!betTags.get(str).isEmpty()) {
+				if (betTags.get(str) != null && !betTags.get(str).isEmpty()) {
 					ret.add(betTags.get(str).peek());
 				}
 			}

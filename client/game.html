@@ -120,6 +120,38 @@
 			transition-delay: 0.4s;
 			transition-timing-function: cubic-bezier(.84,-0.33,.38,1.06);
 		}
+
+		/* bets */
+		#bet-area {
+			padding: 10px 10px;
+			margin: 10px;
+			display: inline-block;
+			/*border: 1px solid #eee;*/
+		}
+		.bet-el {
+			user-select: none;
+			color: #eee;
+			text-shadow: 2px 2px 4px #000;
+			font-size: 3em;
+			padding: 20px;
+			display: inline-block;
+			transition: all 0.2s;
+			border: 2px solid #eee;
+			border-radius: 4px;
+		}
+		.bet-el.active:hover {
+			cursor: pointer;
+			transform: translate(-2px, -2px);
+			box-shadow: 2px 2px #eee;
+		}
+		.active {
+			filter: brightness(0.9);
+		}
+		.inactive {
+			filter: brightness(0.3);
+		}
+
+
 	</style>
 </head>
 <body>
@@ -158,6 +190,18 @@
 		<span class="camel-el"></span>
 		<span class="camel-el"></span>
 		<span class="camel-el"></span>
+	</div>
+
+	<!-- bets -->
+	<div id="bet-area">
+		<div>
+			<b>Click a color to make bet: </b>
+			<span class="bet-el active" onclick="placeBet(this)"></span>
+			<span class="bet-el active" onclick="placeBet(this)"></span>
+			<span class="bet-el active" onclick="placeBet(this)"></span>
+			<span class="bet-el active" onclick="placeBet(this)"></span>
+			<span class="bet-el active" onclick="placeBet(this)"></span>
+		</div>
 	</div>
 
 	<script type="text/javascript">
@@ -248,6 +292,10 @@
 			return gameAction(DICE_KEY)
 		}
 
+		function getBet() {
+			return gameAction("bet")
+		}
+
 		// actions
 		function makeRoll() {
 			gameAction(MAKE_ROLL_KEY).then(li => {
@@ -258,11 +306,23 @@
 			})
 		}
 
+		// place a bet
+		var BET_EMPTY = "0"
+		function placeBet(el) {
+			if (el.innerText === BET_EMPTY)
+				return
+			gameAction("makeBet&color=" + el.style.backgroundColor)
+				.then(bets => {
+					updateBets(bets)
+					getPlayers().then(p => updatePlayers(p))
+				})
+		}
+
 		function resetGame() {
 			gameAction(RESET_KEY).then(t => initGame())
 		}
 
-		COLOR_KEYS = ["RED", "GREEN", "BLUE", "BLACK", "WHITE", "PURPLE", "GOLD"]
+		COLOR_KEYS = ["RED", "GREEN", "BLUE", "PURPLE", "GOLD", "BLACK", "WHITE"]
 		// game states
 		const dice_el = document.querySelectorAll(".die-el")
 		var camels_el = document.querySelectorAll('.camel-el')
@@ -277,13 +337,13 @@
 
 		// helpers ------------------------
 
-		var updateDice = (avaliables) => {
+		var updateDice = (availables) => {
 			// update
 			for (var i = 0; i < COLOR_KEYS.length; i++) {
-				if (avaliables.includes(COLOR_KEYS[i])) {
-					dice_el[i].style.opacity = 1
+				if (availables.includes(COLOR_KEYS[i])) {
+					dice_el[i].className = "die-el active"
 				} else {
-					dice_el[i].style.opacity = 0.1
+					dice_el[i].className = "die-el inactive"
 				}
 			}
 		} 
@@ -310,6 +370,30 @@
 				// console.log(player[0])
 				// console.log(player[1])
 				showPlayer(player[1])
+			}
+		}
+
+		// show bets
+		var bets_list = document.querySelectorAll(".bet-el")
+		for (var i = 0; i < bets_list.length; i++) {
+			bets_list[i].style.backgroundColor = COLOR_KEYS[i]	
+			bets_list[i].innerText = BET_EMPTY
+		}
+		var updateBets = (bets) => {
+			// bets could have less than 5 things {color, value}
+			var availableColors = []
+			for (var bet of bets) {
+				availableColors.push(bet.color)
+			}
+			for (var i = 0; i < bets_list.length; i++) {
+				if (availableColors.includes(COLOR_KEYS[i])) {
+					bets_list[i].className = "bet-el active"
+					bets_list[i].innerText = 
+						bets[availableColors.indexOf(COLOR_KEYS[i])].value
+				} else {
+					bets_list[i].innerText = BET_EMPTY
+					bets_list[i].className = "bet-el inactive"
+				}
 			}
 		}
 
@@ -348,8 +432,9 @@
 			player_area_el.appendChild(player_el)
 		}
 
-		// start of game
 
+
+		// start of game
 		function initGame() {
 			// body...
 			// fetch everything
@@ -359,6 +444,8 @@
 			getCamels().then(cam => updateCamels(cam));
 			// players
 			getPlayers().then(p => updatePlayers(p))
+			// show bets
+			getBet().then(b => updateBets(b))
 		}
 
 		// auto start/login
