@@ -7,17 +7,20 @@
 		html, body {
 			padding: 0;
 			margin: 0;
-			background-color: #444;
+			background-color: #333;
 			color: #eee;
 		}
 		* {
 			box-sizing: border-box;
 			font-family: monospace;
 		}
+		a {
+			color: #eee;
+		}
 
 		/*debug*/
 		*:hover {
-			outline: 1px solid red;
+			/*outline: 1px solid red;*/
 		}
 
 		/*link banner*/
@@ -46,6 +49,48 @@
 			text-align: center;
 		}
 
+		/* players */
+		#players-area {
+			/*text-align: center;*/
+			display: flex;
+			justify-content: center;
+			padding: 10px;
+		}
+		.player {
+			margin: 0 10px;
+			padding: 10px 20px;
+			display: inline-block;
+			background-color: #222;
+			border: 2px solid #eee;
+			position: relative;
+			font-size: 1.5em;
+			transition: all 0.5s;
+		}
+		.player .name {
+			margin-right: 20px;
+		}
+
+		.player:hover .info, .info:hover, .player:hover {
+			visibility: visible;
+			transition-delay: 0s;
+			z-index: 3;
+			border-color: orange;
+		}
+		.player .info {
+			border-radius: 10px;
+			/*transition-delay: 0.1s;*/
+			position: absolute;
+			left: 50%;
+			bottom: 0;
+			transform: translate(-50%, 100%);
+			visibility: hidden;
+			text-align: left;
+			margin: 0;
+			padding: 20px 40px;
+			box-shadow: 0 0 2px 2px #eee;
+			background-color: #222;
+		}
+
 		/* dice */
 		.die-el {
 			opacity: 1;
@@ -59,6 +104,7 @@
 
 		/* camels */
 		#camels-area {
+			overflow: hidden;
 			height: 300px;
 			background-color: #999;
 			position: relative;
@@ -79,10 +125,15 @@
 <body>
 	<!-- display game link -->
 	<div id="banner" onclick="copyLinkAddress()"></div>
-	<h1>Wellcome! <a href="/">home</a></h1>
+	<h1>Wellcome! <a href="/">Home</a> <button onclick="resetGame()">Reset</button></h1>
 	<!-- pick name -->
 	<div id="name-area">
 		<span>Name: </span><input onkeyup="createPlayer(this.value)" id="name-input" type="text" placeholder="pick a name" autofocus>
+	</div>
+
+	<!-- show players -->
+	<div id="players-area">
+		<button onclick="getPlayers().then(p => {updatePlayers(p)})">Update Players</button>
 	</div>
 
 	<!-- show game -->
@@ -137,10 +188,10 @@
 		// mutator
 		let MAKE_ROLL_KEY = "roll"
 		let MAKE_BET_KEY = "makeBet"
+		let RESET_KEY = "reset"
 
 		// url
 		let BASE_COMM_URL = window.location.origin + "/" + GAME_COMM_ROUTE + GAME_ID
-		console.log(BASE_COMM_URL)
 		let user_name = ""
 		// helpers
 		// return a promise, use then
@@ -185,7 +236,7 @@
 		}
 
 		// getters
-		function getPlayer() {
+		function getPlayers() {
 			return gameAction(PLAYERS_KEY)
 		}
 
@@ -205,6 +256,10 @@
 				// then get camels
 				getCamels().then(cams => updateCamels(cams))
 			})
+		}
+
+		function resetGame() {
+			gameAction(RESET_KEY).then(t => initGame())
 		}
 
 		COLOR_KEYS = ["RED", "GREEN", "BLUE", "BLACK", "WHITE", "PURPLE", "GOLD"]
@@ -243,6 +298,55 @@
 			}
 		}
 
+		let player_list = []
+		let player_area_el = document.getElementById('players-area')
+		// install or update players
+		var updatePlayers = (players) => {
+			// remove existing players
+			for (var el of document.querySelectorAll(".player")) {
+				el.remove()
+			}
+			for (var player of Object.entries(players)) {
+				// console.log(player[0])
+				// console.log(player[1])
+				showPlayer(player[1])
+			}
+		}
+
+		// name, coin
+		function showPlayer(player) {
+			// creat elements
+			var player_el = document.createElement("div")
+			player_el.className = "player"
+			// name & coin
+			var name_el = document.createElement("span")
+			name_el.className = "name"
+			var coin_el = document.createElement("span")
+			coin_el.className = "coin"
+			// info
+			var info_el = document.createElement("ul")
+			info_el.className = "info"
+			// name, coins, bets, betTags, globalBets, trap
+			name_el.innerText = player.name
+			coin_el.innerText = player.coin
+
+			// add to info list
+			var bets_el = document.createElement("li")
+			bets_el.innerText = "bets: " + JSON.stringify(player.bets)
+			info_el.appendChild(bets_el)
+			var global_bets_el = document.createElement("li")
+			global_bets_el.innerText = "global bets: " + JSON.stringify(player.globalBets)
+			info_el.appendChild(global_bets_el)
+			var trap_info_el = document.createElement("li")
+			trap_info_el.innerText = "traps: " + JSON.stringify(player.trap)
+			info_el.appendChild(trap_info_el)
+
+			// add to body
+			player_el.appendChild(name_el)
+			player_el.appendChild(coin_el)
+			player_el.appendChild(info_el)
+			player_area_el.appendChild(player_el)
+		}
 
 		// start of game
 
@@ -253,8 +357,15 @@
 			getDice().then(li => updateDice(li));
 			// camels
 			getCamels().then(cam => updateCamels(cam));
+			// players
+			getPlayers().then(p => updatePlayers(p))
 		}
 
+		// auto start/login
+		let name_input_el = document.getElementById('name-input')
+		if (name_input_el.value !== "") {
+			initGame()
+		}
 		
 
 	</script>
