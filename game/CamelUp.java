@@ -301,6 +301,7 @@ public class CamelUp {
 
 	// End game situation, resolve everything that involves points
 	private void gameover() {
+		diceReset();
 		updateLeaderBoard();
 		refreshBettingTags();
 		resolveGlobalBets();
