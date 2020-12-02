@@ -206,18 +206,15 @@ public class CamelUp {
 	public boolean placeTrap(String player, int tile, boolean boost) {
 		// Has to be on the board
 		if (tile <= 0 || tile >= LAST_TILE) {
-			System.out.println("out of board");
 			return false;
 		}
 		// No camels on that tile
-		if (playground[tile].size() != 0) {
-			System.out.println("no camel");
+		if (playground[tile].size() == 0) {
 			return false;
 		}
 		// No traps already on the tile or next to the tile
 		if (traps.containsKey(tile) || traps.containsKey(tile + 1) 
 									|| traps.containsKey(tile - 1)) {
-			System.out.println("trap already there");
 			return false;
 		}
 		Trap currTrap = players.get(player).getTrap();
@@ -229,7 +226,6 @@ public class CamelUp {
 			currTrap.changeTrap(tile, -1);
 		}
 		traps.put(tile, currTrap);
-		System.out.println("added trap");
 		return true;
 	}
 

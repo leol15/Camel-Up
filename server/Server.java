@@ -223,7 +223,9 @@ public class Server {
 			case "placeTrap":
 				int tile = Integer.parseInt(req.queryParams(TILE_KEY));
 				String scalar = req.queryParams(SCALAR_KEY);
-				game.placeTrap(player, tile, scalar.equals("boost"));
+				boolean traped = game.placeTrap(player, tile, scalar.equals("boost"));
+				if (!traped)
+					System.out.println("failed place trap " + tile + " (" + scalar + ")");
 				// pass on to "trap"
 			case "trap":
 				res.body(gson.toJson(game.getTrap()));
