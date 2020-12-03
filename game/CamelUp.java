@@ -135,11 +135,11 @@ public class CamelUp {
 		players.remove(old);
 		for (int i = 0; i < turns.size(); i++) {
 			if (turns.get(i).equals(old)) {
-				turns.remove(i);
+				// turns.remove(i);
+				turns.set(i, newName);
 				break;
 			}
 		}
-		turns.add(newName);
 	}
 
 			/////////////////////////////////////////////////////////////////////
@@ -189,32 +189,45 @@ public class CamelUp {
 	// Player who rolled the dice gets 1 coin
 	// TODO: refactor so roll die takes a player. 
 	public void rollDie(String player) {
-		rollDie();
-		players.get(player).rollDie();
+		if (turns.get(myTurn).equals(player)) {
+			rollDie();
+			players.get(player).rollDie();
+			updateTurnCounter();
+		}
 	}
 
 	// A player can choose to place a bet on a camel (bets that last 1 round)
 	public boolean placeBets(String player, String color) {
 		// Shouldn't be allowed to do that but if they do...
-		color = color.toUpperCase();
-		if (color.equals("BLACK") || color.equals("WHITE")) {
-			return false;
+		if (turns.get(myTurn).equals(player)) {
+			color = color.toUpperCase();
+			if (color.equals("BLACK") || color.equals("WHITE")) {
+				return false;
+			}
+			updateTurnCounter();
+			return players.get(player).placeBet(color);
 		}
-		return players.get(player).placeBet(color);
+		return false;
 	}
 
 	// A player can choose to place a winning global bet on a camel
 	// Players bet what camel will be in first place at the end of the
 	// game
 	public boolean placeWinnerGlobalBet(String player, String color) {
-		return players.get(player).placeGlobalBet(biggestWinner, color);
+		if (turns.get(myTurn).equals(player)) {
+			return players.get(player).placeGlobalBet(biggestWinner, color);
+		}
+		return false;
 	}
 
 	// A player can choose to place a loser global bet on a camel
 	// Players bet what camel will be in last place at the end of the
 	// game
 	public boolean placeLoserGlobalBet(String player, String color) {
-		return players.get(player).placeGlobalBet(biggestLoser, color);
+		if (turns.get(myTurn).equals(player)) {
+			return players.get(player).placeGlobalBet(biggestLoser, color);
+		}
+		return false;
 	}
 
 	// A player can place a trap on the board
@@ -233,16 +246,20 @@ public class CamelUp {
 									|| traps.containsKey(tile - 1)) {
 			return false;
 		}
-		Trap currTrap = players.get(player).getTrap();
-		traps.remove(currTrap.getTile());
-		// traps[currTrap.getTile()] = null; 
-		if (boost) {
-			currTrap.changeTrap(tile, 1);
-		} else {
-			currTrap.changeTrap(tile, -1);
+		if (turns.get(myTurn).equals(player)) {
+			Trap currTrap = players.get(player).getTrap();
+			traps.remove(currTrap.getTile());
+			// traps[currTrap.getTile()] = null; 
+			if (boost) {
+				currTrap.changeTrap(tile, 1);
+			} else {
+				currTrap.changeTrap(tile, -1);
+			}
+			traps.put(tile, currTrap);
+			updateTurnCounter();
+			return true;
 		}
-		traps.put(tile, currTrap);
-		return true;
+		return false;
 	}
 
 	// Sorts the camels and finds the first place camel and the second place camel
@@ -268,6 +285,7 @@ public class CamelUp {
 			p.reset();
 		}
 		updateLeaderBoard();
+		myTurn = 0;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -333,6 +351,14 @@ public class CamelUp {
 		updateLeaderBoard();
 		refreshBettingTags();
 		clearTrap();
+	}
+
+	private void updateTurnCounter() {
+		if (myTurn + 1 == turns.size()) {
+			myTurn = 0;
+		} else {
+			myTurn++;
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -623,8 +649,10 @@ public class CamelUp {
 			if (globalBets.containsKey(color)) {
 				q.add(globalBets.get(color));
 				globalBets.remove(color);
+				updateTurnCounter();
 				return true;
 			}
+			updateTurnCounter();
 			return false;
 		}
 
