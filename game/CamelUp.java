@@ -209,7 +209,7 @@ public class CamelUp {
 			return false;
 		}
 		// No camels on that tile
-		if (playground[tile].size() == 0) {
+		if (playground[tile].size() != 0) {
 			return false;
 		}
 		// No traps already on the tile or next to the tile
