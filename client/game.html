@@ -138,18 +138,34 @@
 			height: 40px;
 			width: calc(100% / 20);
 			border: 1px dashed var(--fg);
+			color: var(--bg);
 			transition: all 0.5s;
 		}
-		.trap-el:hover {
-			border-color: #2e2;
-			border-style: solid;
+		.trap-on-boost {
+			background-color: #2e2;
+			color: transparent;
+		}
+		.trap-on-back {
+			background-color: #e22;
+			color: transparent;
+		}
+		.trap-el span {
+			transition: inherit;
+			display: inline-flex;
+			width: 50%;
+			height: 100%;
+			align-items: center;
+			justify-content: center;
+		}
+		.trap-off .trap-boost-el:hover {
+			color: var(--fg);
+			background-color: #2e2;
 			cursor: pointer;
 		}
-		.trap1 {
-			background-color: #2e2;
-		}
-		.trap-1 {
+		.trap-off .trap-back-el:hover {
+			color: var(--fg);
 			background-color: #e22;
+			cursor: pointer;
 		}
 
 		/* bets */
@@ -196,7 +212,6 @@
 
 	<!-- show players -->
 	<div id="players-area">
-		<button onclick="getPlayers().then(p => {updatePlayers(p)})">Update Players</button>
 	</div>
 
 	<!-- show game -->
@@ -346,7 +361,6 @@
 
 		// place a trap
 		function placeTrap(tile, boost="boost") {
-			console.log("placing trap " + tile)
 			gameAction("placeTrap&tile=" + tile + "&scalar=" + boost)
 				.then(traps => updateTraps(traps))
 		}
@@ -390,7 +404,6 @@
 			}
 		}
 
-		let player_list = []
 		let player_area_el = document.getElementById('players-area')
 		// install or update players
 		var updatePlayers = (players) => {
@@ -432,21 +445,33 @@
 		var trap_area_el = document.getElementById('trap-area')
 		for (var i = 0; i < 20; i++) {
 			var trap_el = document.createElement("span")
-			trap_el.className = "trap-el";
+			trap_el.className = "trap-el"
+			trap_area_el.appendChild(trap_el)
+			var trap_boost = document.createElement("span")
+			var trap_back = document.createElement("span")
+			trap_boost.className = "trap-boost-el"
+			trap_back.className = "trap-back-el"
+			trap_boost.innerText = ">"
+			trap_back.innerText = "<"
+			trap_el.appendChild(trap_back)
+			trap_el.appendChild(trap_boost);
 			// strange var capture here
 			(() => {
 				var tile = i
-				trap_el.onclick = () => placeTrap(tile)
+				trap_boost.onclick = () => placeTrap(tile)
+				trap_back.onclick = () => placeTrap(tile, "nope")
 			})();
-			trap_area_el.appendChild(trap_el)
 		}
 		// show traps {value, player, tile}
 		var updateTraps = (traps) => {
 			var traps_el = document.querySelectorAll(".trap-el")
-			traps_el.forEach(el => el.className = "trap-el")
+			traps_el.forEach(el => el.className = "trap-el trap-off")
 			traps.forEach(t => {
-				console.log(traps_el.length)
-				traps_el[t.tile].className = "trap-el trap" + t.value
+				if (t.value === 1) {
+					traps_el[t.tile].className = "trap-el trap-on-boost"
+				} else {
+					traps_el[t.tile].className = "trap-el trap-on-back"
+				}
 			})
 		}
 
@@ -489,7 +514,6 @@
 
 		// start of game
 		function initGame() {
-			// body...
 			// fetch everything
 			// dice
 			getDice().then(li => updateDice(li));
@@ -500,13 +524,11 @@
 			// show bets
 			getBet().then(b => updateBets(b))
 			// show traps
-
 			getTrap().then(t => updateTraps(t))
 		}
 
 		// auto start/login
-		let name_input_el = document.getElementById('name-input')
-		if (name_input_el.value !== "") {
+		if (document.getElementById('name-input').value !== "") {
 			initGame()
 		}
 		
