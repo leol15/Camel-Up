@@ -38,6 +38,9 @@ public class CamelUp {
 
 	// Keeps track of the ranking of the camels
 	private String[] ranking;
+
+	private List<String> turns;
+	private int myTurn;
 	
 
 	@SuppressWarnings("unchecked")
@@ -52,6 +55,8 @@ public class CamelUp {
 		biggestWinner = new LinkedList<>();
 		biggestLoser = new LinkedList<>();
 		ranking = new String[COLORS.length - 2];
+		turns = new ArrayList<>();
+		myTurn = 0;
 
 		// Setting up the dice
 		for (int i = 0; i < COLORS.length; i++)
@@ -113,6 +118,7 @@ public class CamelUp {
 			return false;
 		}
 		players.put(name, new Player(name, betTags));
+		turns.add(name); 
 		return true;
 	}
 
@@ -127,9 +133,19 @@ public class CamelUp {
 		players.get(old).changeName(newName);
 		players.put(newName, players.get(old));
 		players.remove(old);
+		for (int i = 0; i < turns.size(); i++) {
+			if (turns.get(i).equals(old)) {
+				turns.remove(i);
+				break;
+			}
+		}
+		turns.add(newName);
 	}
 
-	// actions
+			/////////////////////////////////////////////////////////////////////
+			// 	In game action
+			////////////////////////////////////////////////////////////////////
+	// actions		
 	// make a roll
 	public void rollDie() {
 		// decide what color
