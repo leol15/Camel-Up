@@ -123,15 +123,17 @@ public class Server {
 			// connect request to specific room
 			// or return something like room does not exist
 			String roomLink = req.splat()[0];
-			if (!gamePool.containsKey(roomLink))
-				return "Room does not exist";
 			CamelUp game = gamePool.get(roomLink);
-			if (game == null)
-				return "Room does not exist";
-			// fetch file
 			res.type("text/html"); 
-			res.body(readFileToString(ROOT_PATH + "/client/game.html"));
-			res.status(200);
+			if (game == null) {
+				// 404
+				res.status(404);
+				res.body(readFileToString(ROOT_PATH + "/client/404.html"));
+			} else {
+				// fetch file
+				res.body(readFileToString(ROOT_PATH + "/client/game.html"));
+				res.status(200);
+			}
 			return "";
 		});
 
