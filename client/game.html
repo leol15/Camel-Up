@@ -168,6 +168,8 @@
 		/* bets */
 		#bet-area {
 			padding: 10px;
+			display: flex;
+			justify-content: space-around;
 		}
 		.bet-el {
 			color: var(--fg);
@@ -188,6 +190,12 @@
 		}
 		.inactive {
 			filter: brightness(0.4);
+		}
+		.global-bet-el {
+			padding: 10px;
+			font-size: 2em;
+			text-shadow: 2px 2px 4px #000;
+			border: 2px solid var(--fg);
 		}
 
 
@@ -247,6 +255,14 @@
 			<span class="INBLOCK bet-el active" onclick="placeBet(this)"></span>
 			<span class="INBLOCK bet-el active" onclick="placeBet(this)"></span>
 		</div>
+		<div>
+			<span>Global Bets</span>
+			<span class="INBLOCK global-bet-el"></span>
+			<span class="INBLOCK global-bet-el"></span>
+			<span class="INBLOCK global-bet-el"></span>
+			<span class="INBLOCK global-bet-el"></span>
+			<span class="INBLOCK global-bet-el"></span>
+		</div>
 	</div>
 
 	<script type="text/javascript">
@@ -292,7 +308,7 @@
 
 		// set uname send address
 		function createPlayer(name) {
-			if (event.key === "Enter" || event.keyCode === 12) {
+			if (name !== "" && (event.key === "Enter" || event.keyCode === 12)) {
 				gameAction("uname&uname=" + name)
 					.then(name => {
 						console.log("new name is " + name)
@@ -337,6 +353,14 @@
 					updateBets(bets)
 					getPlayers().then(p => updatePlayers(p))
 				})
+		}
+
+		const makeWinnerGlobalBet = (col) => {
+			gameAction("makeWinnerGlobalBet&color=" + col).then(b => updateGlobalBet(b))
+		}
+
+		const makeLoserGlobalBet = (col) => {
+			gameAction("makeLoserGlobalBet&color=" + col).then(b => updateGlobalBet(b))
 		}
 
 		// place a trap
@@ -412,6 +436,14 @@
 			}
 		}
 
+		var global_bets_el = document.querySelectorAll(".global-bet-el")
+		function updateGlobalBet(bets) {
+			for (var i = 0; i < bets.length; i++) {
+				global_bets_el[i].style.backgroundColor = bets[i].color
+				global_bets_el[i].innerText = bets[i].player
+			}
+		}
+
 		var trap_area_el = document.getElementById('trap-area')
 		for (var i = 0; i < 20; i++) {
 			// spans to color
@@ -463,9 +495,8 @@
 			// add to info list
 			var bets_el = createTag("li", "", "bets: " + JSON.stringify(player.bets))
 			info_el.appendChild(bets_el)
-			var global_bets_el = createTag("li", "", 
-				"global bets: " + JSON.stringify(player.globalBets))
-			info_el.appendChild(global_bets_el)
+			info_el.appendChild(createTag("li", "", 
+				"global bets: " + JSON.stringify(player.globalBets)))
 			var trap_info_el = createTag("li", "", "traps: " + JSON.stringify(player.trap))
 			info_el.appendChild(trap_info_el)
 
@@ -489,6 +520,7 @@
 			getPlayers().then(p => updatePlayers(p))
 			// show bets
 			getBet().then(b => updateBets(b))
+			getGlobalBet().then(b => updateGlobalBet(b))
 			// show traps
 			getTraps().then(t => updateTraps(t))
 		}
