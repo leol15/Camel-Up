@@ -90,7 +90,6 @@
 		}
 		.player .info {
 			border-radius: 10px;
-			/*transition-delay: 0.1s;*/
 			position: absolute;
 			left: 50%;
 			bottom: 0;
@@ -105,7 +104,6 @@
 
 		/* dice */
 		.die-el {
-			opacity: 1;
 			transition: all 0.7s;
 			display: inline-block;
 			width: 40px;
@@ -117,14 +115,12 @@
 		/* camels */
 		#camels-area {
 			overflow: hidden;
-			height: 300px;
+			height: 30vh;
 			background-color: #999;
 			position: relative;
 		}
 		.camel-el {
 			position: absolute;
-			left: 0%;
-			bottom: 0%;
 			display: inline-block;
 			width: 5%;
 			height: calc(100% / 7);
@@ -146,6 +142,8 @@
 		}
 		.trap-el:hover {
 			border-color: #2e2;
+			border-style: solid;
+			cursor: pointer;
 		}
 		.trap1 {
 			background-color: #2e2;
@@ -239,7 +237,6 @@
 			<span class="bet-el active" onclick="placeBet(this)"></span>
 			<span class="bet-el active" onclick="placeBet(this)"></span>
 		</div>
-		<button onclick="placeTrap(1)">Put trap 1</button>
 	</div>
 
 	<script type="text/javascript">
@@ -259,21 +256,8 @@
 		}
 
 		// static final variables
-		let GAME_COMM_ROUTE = "gamespeaks/"
-		let NAME_KEY = "uname"
-		// getters
-		let DICE_KEY = "dice"
-		let BET_KEY = "bet"
-		let PLAYERS_KEY = "players"
-		let GLOBAL_BET_KEY = "makeBet"
-		let CAMELS_KEY = "camels"
-		// mutator
-		let MAKE_ROLL_KEY = "roll"
-		let MAKE_BET_KEY = "makeBet"
-		let RESET_KEY = "reset"
-
 		// url
-		let BASE_COMM_URL = window.location.origin + "/" + GAME_COMM_ROUTE + GAME_ID
+		let BASE_COMM_URL = window.location.origin + "/gamespeaks/" + GAME_ID
 		let user_name = ""
 		// helpers
 		// return a promise, use then
@@ -307,7 +291,7 @@
 		// set uname send address
 		function createPlayer(name) {
 			if (event.key === "Enter" || event.keyCode === 12) {
-				gameAction(NAME_KEY + "&" + NAME_KEY + "=" + name)
+				gameAction("uname&uname=" + name)
 					.then(name => {
 						console.log("new name is " + name)
 						user_name = name;
@@ -317,17 +301,17 @@
 			}
 		}
 
-		// getters
+		// getters: routes with server defined keys
 		function getPlayers() {
-			return gameAction(PLAYERS_KEY)
+			return gameAction("players")
 		}
 
 		function getCamels() {
-			return gameAction(CAMELS_KEY)
+			return gameAction("camels")
 		}
 
 		function getDice() {
-			return gameAction(DICE_KEY)
+			return gameAction("dice")
 		}
 
 		function getBet() {
@@ -340,7 +324,7 @@
 
 		// actions
 		function makeRoll() {
-			gameAction(MAKE_ROLL_KEY).then(li => {
+			gameAction("roll").then(li => {
 				// update dice
 				updateDice(li)
 				// then get camels
@@ -362,12 +346,13 @@
 
 		// place a trap
 		function placeTrap(tile, boost="boost") {
+			console.log("placing trap " + tile)
 			gameAction("placeTrap&tile=" + tile + "&scalar=" + boost)
 				.then(traps => updateTraps(traps))
 		}
 
 		function resetGame() {
-			gameAction(RESET_KEY).then(t => initGame())
+			gameAction("reset").then(t => initGame())
 		}
 
 		COLOR_KEYS = ["RED", "GREEN", "BLUE", "PURPLE", "GOLD", "BLACK", "WHITE"]
@@ -381,7 +366,6 @@
 		for (var i = 0; i < COLOR_KEYS.length; i++) {
 			camels_el[i].style.backgroundColor = COLOR_KEYS[i];
 		}
-		var players_list = []
 
 		// helpers ------------------------
 
@@ -448,16 +432,22 @@
 		var trap_area_el = document.getElementById('trap-area')
 		for (var i = 0; i < 20; i++) {
 			var trap_el = document.createElement("span")
-			trap_el.className = "trap-el"
+			trap_el.className = "trap-el";
+			// strange var capture here
+			(() => {
+				var tile = i
+				trap_el.onclick = () => placeTrap(tile)
+			})();
 			trap_area_el.appendChild(trap_el)
 		}
 		// show traps {value, player, tile}
 		var updateTraps = (traps) => {
 			var traps_el = document.querySelectorAll(".trap-el")
 			traps_el.forEach(el => el.className = "trap-el")
-			for (var trap of traps) {
-				traps_el[trap.tile].className = "trap-el trap" + trap.value
-			}
+			traps.forEach(t => {
+				console.log(traps_el.length)
+				traps_el[t.tile].className = "trap-el trap" + t.value
+			})
 		}
 
 		// name, coin
@@ -524,3 +514,4 @@
 	</script>
 </body>
 </html>
+
