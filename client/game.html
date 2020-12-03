@@ -30,12 +30,19 @@
 			/*outline: 1px solid red;*/
 		}
 
+		/* commons */
+		.CTEXT {
+			text-align: center;
+		}
+		.INBLOCK {
+			display: inline-block;
+		}
+
 		/*link banner*/
 		#banner {
 			font-size: 2em;
 			background-color: black;
 			color: var(--fg);
-			text-align: center;
 			padding: 15px;
 			transition: all 0.5s;
 		}
@@ -50,10 +57,8 @@
 		/*pick name*/
 		#name-area {
 			padding: 10px;
-			text-align: center;
 		}
 		#name-input {
-			text-align: center;
 			transition: all 1s;
 		}
 		#name-input:focus {
@@ -63,7 +68,6 @@
 
 		/* players */
 		#players-area {
-			/*text-align: center;*/
 			display: flex;
 			justify-content: center;
 			padding: 10px;
@@ -71,7 +75,7 @@
 		.player {
 			margin: 0 10px;
 			padding: 10px 20px;
-			display: inline-block;
+			
 			background-color: #222;
 			border: 2px solid var(--fg);
 			position: relative;
@@ -84,18 +88,17 @@
 
 		.player:hover .info, .info:hover, .player:hover {
 			visibility: visible;
-			transition-delay: 0s;
 			z-index: 3;
 			border-color: orange;
 		}
 		.player .info {
-			border-radius: 10px;
 			position: absolute;
 			left: 50%;
 			bottom: 0;
 			transform: translate(-50%, 100%);
 			visibility: hidden;
 			text-align: left;
+			border-radius: 10px;
 			margin: 0;
 			padding: 20px 40px;
 			box-shadow: 0 0 2px 2px var(--fg);
@@ -105,7 +108,6 @@
 		/* dice */
 		.die-el {
 			transition: all 0.7s;
-			display: inline-block;
 			width: 40px;
 			height: 40px;
 			border-radius: 4px;
@@ -121,7 +123,6 @@
 		}
 		.camel-el {
 			position: absolute;
-			display: inline-block;
 			width: 5%;
 			height: calc(100% / 7);
 			transition: all 1s;
@@ -134,57 +135,48 @@
 
 		}
 		.trap-el {
-			display: inline-block;
-			height: 40px;
 			width: calc(100% / 20);
 			border: 1px dashed var(--fg);
-			color: var(--bg);
 			transition: all 0.5s;
-		}
-		.trap-on-boost {
-			background-color: #2e2;
-			color: transparent;
-		}
-		.trap-on-back {
-			background-color: #e22;
+			font-size: 2.8em;
 			color: transparent;
 		}
 		.trap-el span {
 			transition: inherit;
 			display: inline-flex;
 			width: 50%;
-			height: 100%;
 			align-items: center;
 			justify-content: center;
 		}
-		.trap-off .trap-boost-el:hover {
-			color: var(--fg);
+		.trap-on-boost {
 			background-color: #2e2;
+		}
+		.trap-on-back {
+			background-color: #e22;
+		}
+		.trap-off:hover {
+			color: var(--fg);
 			cursor: pointer;
 		}
+		.trap-off .trap-boost-el:hover {
+			background-color: #2e2;
+		}
 		.trap-off .trap-back-el:hover {
-			color: var(--fg);
 			background-color: #e22;
-			cursor: pointer;
 		}
 
 		/* bets */
 		#bet-area {
-			padding: 10px 10px;
-			margin: 10px;
-			display: inline-block;
-			/*border: 1px solid var(--fg);*/
+			padding: 10px;
 		}
 		.bet-el {
-			user-select: none;
 			color: var(--fg);
+			user-select: none;
 			text-shadow: 2px 2px 4px #000;
 			font-size: 3em;
 			padding: 20px;
-			display: inline-block;
 			transition: all 0.2s;
 			border: 2px solid var(--fg);
-			border-radius: 4px;
 		}
 		.bet-el.active:hover {
 			cursor: pointer;
@@ -195,7 +187,7 @@
 			filter: brightness(0.9);
 		}
 		.inactive {
-			filter: brightness(0.3);
+			filter: brightness(0.4);
 		}
 
 
@@ -203,11 +195,14 @@
 </head>
 <body>
 	<!-- display game link -->
-	<div id="banner" onclick="copyLinkAddress()"></div>
+	<div id="banner" class="CTEXT" onclick="copyLinkAddress()"></div>
 	<h1>Wellcome! <a href="/">Home</a> <button onclick="resetGame()">Reset</button></h1>
 	<!-- pick name -->
-	<div id="name-area">
-		<span>Name: </span><input onkeyup="createPlayer(this.value)" id="name-input" type="text" placeholder="pick a name" autofocus>
+	<div id="name-area" class="CTEXT">
+		<span>Name: </span>
+		<input id="name-input" class="CTEXT" type="text"
+			onkeyup="createPlayer(this.value)"
+			placeholder="pick a name" autofocus>
 	</div>
 
 	<!-- show players -->
@@ -218,24 +213,24 @@
 	<div id="dice-area">
 		<button onclick="makeRoll()">Roll</button>
 		<span>Dice Left</span>
-		<span class="die-el"></span>
-		<span class="die-el"></span>
-		<span class="die-el"></span>
-		<span class="die-el"></span>
-		<span class="die-el"></span>
-		<span class="die-el"></span>
-		<span class="die-el"></span>
+		<span class="die-el INBLOCK"></span>
+		<span class="die-el INBLOCK"></span>
+		<span class="die-el INBLOCK"></span>
+		<span class="die-el INBLOCK"></span>
+		<span class="die-el INBLOCK"></span>
+		<span class="die-el INBLOCK"></span>
+		<span class="die-el INBLOCK"></span>
 	</div>
 
 	<!-- camels -->
 	<div id="camels-area">
-		<span class="camel-el"></span>
-		<span class="camel-el"></span>
-		<span class="camel-el"></span>
-		<span class="camel-el"></span>
-		<span class="camel-el"></span>
-		<span class="camel-el"></span>
-		<span class="camel-el"></span>
+		<span class="camel-el INBLOCK"></span>
+		<span class="camel-el INBLOCK"></span>
+		<span class="camel-el INBLOCK"></span>
+		<span class="camel-el INBLOCK"></span>
+		<span class="camel-el INBLOCK"></span>
+		<span class="camel-el INBLOCK"></span>
+		<span class="camel-el INBLOCK"></span>
 	</div>
 
 	<!-- traps -->
@@ -246,35 +241,34 @@
 	<div id="bet-area">
 		<div>
 			<b>Click a color to make bet: </b>
-			<span class="bet-el active" onclick="placeBet(this)"></span>
-			<span class="bet-el active" onclick="placeBet(this)"></span>
-			<span class="bet-el active" onclick="placeBet(this)"></span>
-			<span class="bet-el active" onclick="placeBet(this)"></span>
-			<span class="bet-el active" onclick="placeBet(this)"></span>
+			<span class="INBLOCK bet-el active" onclick="placeBet(this)"></span>
+			<span class="INBLOCK bet-el active" onclick="placeBet(this)"></span>
+			<span class="INBLOCK bet-el active" onclick="placeBet(this)"></span>
+			<span class="INBLOCK bet-el active" onclick="placeBet(this)"></span>
+			<span class="INBLOCK bet-el active" onclick="placeBet(this)"></span>
 		</div>
 	</div>
 
 	<script type="text/javascript">
-		// fill banner with link address
-		let banner_el = document.getElementById('banner')
 		// get link name
 		let GAME_ID = window.location.pathname.split("/")[2]
-		banner_el.innerHTML = "Game link: " + GAME_ID + " (Click to copy)";
+		// address to communicate
+		let HOST_URL = window.location.origin + "/gamespeaks/" + GAME_ID
+		let user_name = ""
+		// fill banner with link address
+		document.getElementById('banner').innerHTML =
+			"Game link: " + GAME_ID + " (Click to copy)";
+		// auto copy link on click
 		function copyLinkAddress() {
-			let dummy_link_el = document.createElement("input");
-			dummy_link_el.value = window.location;
-			document.body.appendChild(dummy_link_el);
-			dummy_link_el.select();
-			dummy_link_el.setSelectionRange(0, 99999); /*For mobile devices*/
+			let tmpIn = document.createElement("input");
+			tmpIn.value = window.location;
+			document.body.appendChild(tmpIn);
+			tmpIn.select();
+			tmpIn.setSelectionRange(0, 99999); /*For mobile devices*/
 			document.execCommand("copy");
-			dummy_link_el.remove();
+			tmpIn.remove();
 		}
 
-		// static final variables
-		// url
-		let BASE_COMM_URL = window.location.origin + "/gamespeaks/" + GAME_ID
-		let user_name = ""
-		// helpers
 		// return a promise, use then
 		// will try to consume a json or text
 		function fetch_url(url) {
@@ -290,18 +284,11 @@
 						return res.data()
 					}
 				})
-				.then(thing => {
-					console.log("Response:")
-					console.log(thing);
-					return thing
-				})
 				.catch(err => console.log(err));
 		}
 
 		// request using a game action		
-		function gameAction(action) {
-			return fetch_url(BASE_COMM_URL + "?action=" + encodeURI(action));
-		}
+		const gameAction = (str) => fetch_url(HOST_URL + "?action=" + encodeURI(str))
 
 		// set uname send address
 		function createPlayer(name) {
@@ -317,25 +304,17 @@
 		}
 
 		// getters: routes with server defined keys
-		function getPlayers() {
-			return gameAction("players")
-		}
+		const getPlayers = () => gameAction("players")
 
-		function getCamels() {
-			return gameAction("camels")
-		}
+		const getCamels = () => gameAction("camels")
 
-		function getDice() {
-			return gameAction("dice")
-		}
+		const getDice = () => gameAction("dice")
 
-		function getBet() {
-			return gameAction("bet")
-		}
+		const getBet = () => gameAction("bet")
 
-		function getTrap() {
-			return gameAction("trap")
-		}
+		const getTraps = () => gameAction("trap")
+
+		const getGlobalBet = () => gameAction("globalBet")
 
 		// actions
 		function makeRoll() {
@@ -344,6 +323,7 @@
 				updateDice(li)
 				// then get camels
 				getCamels().then(cams => updateCamels(cams))
+				getTraps().then(traps => updateTraps(traps))
 			})
 		}
 
@@ -360,14 +340,11 @@
 		}
 
 		// place a trap
-		function placeTrap(tile, boost="boost") {
-			gameAction("placeTrap&tile=" + tile + "&scalar=" + boost)
+		const placeTrap = (tile, boost="boost") => gameAction("placeTrap&tile="
+				+ tile + "&scalar=" + boost)
 				.then(traps => updateTraps(traps))
-		}
 
-		function resetGame() {
-			gameAction("reset").then(t => initGame())
-		}
+		const resetGame = () => gameAction("reset").then(t => initGame())
 
 		COLOR_KEYS = ["RED", "GREEN", "BLUE", "PURPLE", "GOLD", "BLACK", "WHITE"]
 		// game states
@@ -383,19 +360,19 @@
 
 		// helpers ------------------------
 
-		var updateDice = (availables) => {
+		function updateDice(availables) {
 			// update
 			for (var i = 0; i < COLOR_KEYS.length; i++) {
 				if (availables.includes(COLOR_KEYS[i])) {
-					dice_el[i].className = "die-el active"
+					dice_el[i].className = "INBLOCK die-el active"
 				} else {
-					dice_el[i].className = "die-el inactive"
+					dice_el[i].className = "INBLOCK die-el inactive"
 				}
 			}
 		} 
 
 		// color maps to location
-		var updateCamels = (cam) => {
+		function updateCamels(cam){
 			for (var i = 0; i < COLOR_KEYS.length; i++) {
 				var left = cam[COLOR_KEYS[i]][0] / 20 * 100
 				camels_el[i].style.left = left + "%"
@@ -406,16 +383,11 @@
 
 		let player_area_el = document.getElementById('players-area')
 		// install or update players
-		var updatePlayers = (players) => {
+		function updatePlayers(players) {
 			// remove existing players
-			for (var el of document.querySelectorAll(".player")) {
-				el.remove()
-			}
-			for (var player of Object.entries(players)) {
-				// console.log(player[0])
-				// console.log(player[1])
-				showPlayer(player[1])
-			}
+			document.querySelectorAll(".player").forEach(e => e.remove())
+			// add all players [name, obj]
+			Object.entries(players).forEach(player => showPlayer(player[1]))
 		}
 
 		// show bets
@@ -424,83 +396,77 @@
 			bets_list[i].style.backgroundColor = COLOR_KEYS[i]	
 			bets_list[i].innerText = BET_EMPTY
 		}
-		var updateBets = (bets) => {
+		function updateBets(bets) {
 			// bets could have less than 5 things {color, value}
 			var availableColors = []
-			for (var bet of bets) {
-				availableColors.push(bet.color)
-			}
+			bets.forEach(b => availableColors.push(b.color))
 			for (var i = 0; i < bets_list.length; i++) {
 				if (availableColors.includes(COLOR_KEYS[i])) {
-					bets_list[i].className = "bet-el active"
+					bets_list[i].className = "INBLOCK bet-el active"
 					bets_list[i].innerText = 
 						bets[availableColors.indexOf(COLOR_KEYS[i])].value
 				} else {
 					bets_list[i].innerText = BET_EMPTY
-					bets_list[i].className = "bet-el inactive"
+					bets_list[i].className = "INBLOCK bet-el inactive"
 				}
 			}
 		}
 
 		var trap_area_el = document.getElementById('trap-area')
 		for (var i = 0; i < 20; i++) {
-			var trap_el = document.createElement("span")
-			trap_el.className = "trap-el"
-			trap_area_el.appendChild(trap_el)
-			var trap_boost = document.createElement("span")
-			var trap_back = document.createElement("span")
-			trap_boost.className = "trap-boost-el"
-			trap_back.className = "trap-back-el"
-			trap_boost.innerText = ">"
-			trap_back.innerText = "<"
-			trap_el.appendChild(trap_back)
-			trap_el.appendChild(trap_boost);
+			// spans to color
+			// trap block
+			var trap_el = createTag("span", "INBLOCK trap-el")
+			var trap_boost = createTag("span", "trap-boost-el", ">")
+			var trap_back = createTag("span", "trap-back-el", "<");
 			// strange var capture here
 			(() => {
 				var tile = i
 				trap_boost.onclick = () => placeTrap(tile)
 				trap_back.onclick = () => placeTrap(tile, "nope")
 			})();
+			trap_el.appendChild(trap_back)
+			trap_el.appendChild(trap_boost);
+			// add to page
+			trap_area_el.appendChild(trap_el)
 		}
 		// show traps {value, player, tile}
-		var updateTraps = (traps) => {
+		function updateTraps(traps) {
 			var traps_el = document.querySelectorAll(".trap-el")
-			traps_el.forEach(el => el.className = "trap-el trap-off")
+			traps_el.forEach(el => el.className = "INBLOCK trap-el trap-off")
 			traps.forEach(t => {
 				if (t.value === 1) {
-					traps_el[t.tile].className = "trap-el trap-on-boost"
+					traps_el[t.tile].className = "INBLOCK trap-el trap-on-boost"
 				} else {
-					traps_el[t.tile].className = "trap-el trap-on-back"
+					traps_el[t.tile].className = "INBLOCK trap-el trap-on-back"
 				}
 			})
+		}
+
+		function createTag(tag, className="", innerHTML="") {
+			var el = document.createElement(tag)
+			el.className = className
+			el.innerHTML = innerHTML
+			return el
 		}
 
 		// name, coin
 		function showPlayer(player) {
 			// creat elements
-			var player_el = document.createElement("div")
-			player_el.className = "player"
-			// name & coin
-			var name_el = document.createElement("span")
-			name_el.className = "name"
-			var coin_el = document.createElement("span")
-			coin_el.className = "coin"
-			// info
-			var info_el = document.createElement("ul")
-			info_el.className = "info"
 			// name, coins, bets, betTags, globalBets, trap
-			name_el.innerText = player.name
-			coin_el.innerText = player.coin
-
+			var player_el = createTag("div", "player")
+			// name & coin
+			var name_el = createTag("span", "name", player.name)
+			var coin_el = createTag("span", "coin", player.coin)
+			// info
+			var info_el = createTag("ul", "info")
 			// add to info list
-			var bets_el = document.createElement("li")
-			bets_el.innerText = "bets: " + JSON.stringify(player.bets)
+			var bets_el = createTag("li", "", "bets: " + JSON.stringify(player.bets))
 			info_el.appendChild(bets_el)
-			var global_bets_el = document.createElement("li")
-			global_bets_el.innerText = "global bets: " + JSON.stringify(player.globalBets)
+			var global_bets_el = createTag("li", "", 
+				"global bets: " + JSON.stringify(player.globalBets))
 			info_el.appendChild(global_bets_el)
-			var trap_info_el = document.createElement("li")
-			trap_info_el.innerText = "traps: " + JSON.stringify(player.trap)
+			var trap_info_el = createTag("li", "", "traps: " + JSON.stringify(player.trap))
 			info_el.appendChild(trap_info_el)
 
 			// add to body
@@ -524,7 +490,7 @@
 			// show bets
 			getBet().then(b => updateBets(b))
 			// show traps
-			getTrap().then(t => updateTraps(t))
+			getTraps().then(t => updateTraps(t))
 		}
 
 		// auto start/login
