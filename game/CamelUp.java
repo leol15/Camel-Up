@@ -43,6 +43,8 @@ public class CamelUp {
 
 	private List<String> turns;
 	private int myTurn;
+
+	private boolean endGame;
 	
 
 	@SuppressWarnings("unchecked")
@@ -60,6 +62,7 @@ public class CamelUp {
 		ranking = new String[COLORS.length - 2];
 		turns = new ArrayList<>();
 		myTurn = 0;
+		endGame = false;
 
 		// Setting up the dice
 		for (int i = 0; i < COLORS.length; i++)
@@ -200,6 +203,8 @@ public class CamelUp {
 	// Player who rolled the dice gets 1 coin
 	// TODO: refactor so roll die takes a player. 
 	public void rollDie(String player) {
+		if (endGame)
+			return;
 		if (turns.get(myTurn).equals(player)) {
 			rollDie();
 			players.get(player).rollDie();
@@ -210,6 +215,8 @@ public class CamelUp {
 	// A player can choose to place a bet on a camel (bets that last 1 round)
 	public boolean placeBets(String player, String color) {
 		// Shouldn't be allowed to do that but if they do...
+		if (endGame)
+			return false;
 		if (turns.get(myTurn).equals(player)) {
 			color = color.toUpperCase();
 			if (color.equals("BLACK") || color.equals("WHITE")) {
@@ -225,6 +232,8 @@ public class CamelUp {
 	// Players bet what camel will be in first place at the end of the
 	// game
 	public boolean placeWinnerGlobalBet(String player, String color) {
+		if (endGame)
+			return false;
 		if (turns.get(myTurn).equals(player)) {
 			mutated();
 			return players.get(player).placeGlobalBet(biggestWinner, color);
@@ -236,6 +245,8 @@ public class CamelUp {
 	// Players bet what camel will be in last place at the end of the
 	// game
 	public boolean placeLoserGlobalBet(String player, String color) {
+		if (endGame)
+			return false;
 		if (turns.get(myTurn).equals(player)) {
 			mutated();
 			return players.get(player).placeGlobalBet(biggestLoser, color);
@@ -247,6 +258,8 @@ public class CamelUp {
 	// Traps can only be placed on empty tiles on the board (no camel there yet)
 	public boolean placeTrap(String player, int tile, boolean boost) {
 		// Has to be on the board
+		if (endGame)
+			return false;
 		if (tile <= 0 || tile >= LAST_TILE) {
 			return false;
 		}
@@ -277,6 +290,8 @@ public class CamelUp {
 
 	// Sorts the camels and finds the first place camel and the second place camel
 	public void updateLeaderBoard() {
+		if (endGame)
+			return;
 		for (Camel c : camels) {
 			sortCamel.add(c);
 		}
@@ -299,6 +314,7 @@ public class CamelUp {
 		}
 		updateLeaderBoard();
 		myTurn = 0;
+		endGame = false;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -386,6 +402,10 @@ public class CamelUp {
 			colorToPosition.put(c.color(), pos);
 		}
 		return colorToPosition;
+	}
+
+	public String getPlayerTurn() {
+		return turns.get(myTurn);
 	}
 
 	public Map<String, Player> getPlayers() {
