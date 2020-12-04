@@ -237,7 +237,11 @@ public class Server {
 				break;
 			case "reset":
 				game.reset();
-
+				break;
+			case "timestamp":
+				res.body(gson.toJson(game.getTimeStamp()));
+				res.type("application/json");
+				break;
 			default:
 				res.body(game.toString());
 		}

@@ -332,6 +332,8 @@
 
 		const getGlobalBet = () => gameAction("globalBet")
 
+		const getTimeStamp = () => gameAction("timestamp")
+
 		// actions
 		function makeRoll() {
 			gameAction("roll").then(li => {
@@ -507,11 +509,8 @@
 			player_area_el.appendChild(player_el)
 		}
 
-
-
-		// start of game
-		function initGame() {
-			// fetch everything
+		// setup everything
+		function fetchAll() {
 			// dice
 			getDice().then(li => updateDice(li));
 			// camels
@@ -523,6 +522,28 @@
 			getGlobalBet().then(b => updateGlobalBet(b))
 			// show traps
 			getTraps().then(t => updateTraps(t))
+		}
+
+		var syncing = false
+		var timestamp = 0
+
+		// start of game
+		function initGame() {
+			// fetch everything
+			fetchAll()
+			// start syncing
+			// send palse periodically
+			if (!syncing) {
+				syncing = true
+				setInterval(() => {
+					getTimeStamp().then(t => {
+						if (t !== timestamp) {
+							timestamp = t
+							fetchAll()
+						}
+					})
+				}, 1500)
+			}
 		}
 
 		// auto start/login
