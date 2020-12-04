@@ -478,6 +478,10 @@ public class CamelUp {
 			return sb.toString();
 	}
 
+	public boolean getEngGame() {
+		return endGame;
+	}
+
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// 			Objects used to keep track of game data 
