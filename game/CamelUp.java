@@ -117,12 +117,6 @@ public class CamelUp {
 	//			Player Actions
 	////////////////////////////////////////////////////////////////////////////////////
 
-	private void mutated() {
-		timeStamp++;
-	}
-	public int getTimeStamp() {
-		return timeStamp;
-	}
 
 	// Add a player to the game
 	// A player is added if a name is provided
@@ -321,6 +315,10 @@ public class CamelUp {
 	//    Private Helper Methods
 	////////////////////////////////////////////////////////////////////////////////////
 
+	private void mutated() {
+		timeStamp++;
+	}
+
 	private void diceReset() {
 		dice.clear();
 		for (int i = 0; i < COLORS.length; i++)
@@ -457,6 +455,10 @@ public class CamelUp {
 			ret.put(kv.getKey(), kv.getValue().getScore());
 		}
 		return ret;
+	}
+
+	public int getTimeStamp() {
+		return timeStamp;
 	}
 
 	@Override
