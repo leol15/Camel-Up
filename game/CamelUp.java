@@ -478,7 +478,7 @@ public class CamelUp {
 			return sb.toString();
 	}
 
-	public boolean getEngGame() {
+	public boolean getEndGame() {
 		return endGame;
 	}
 
