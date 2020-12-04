@@ -242,6 +242,10 @@ public class Server {
 				res.body(gson.toJson(game.getTimeStamp()));
 				res.type("application/json");
 				break;
+			case "playerTurn":
+				res.body(gson.toJson(game.getPlayerTurn()));
+				res.type("application/json");
+				break;
 			default:
 				res.body(game.toString());
 		}

@@ -104,6 +104,19 @@
 			box-shadow: 0 0 2px 2px var(--fg);
 			background-color: #222;
 		}
+		.player.taking-turn {
+			transition: all 1s;
+			box-shadow: 0 0 2px 2px gold;
+			color: gold;
+			border-color: gold;
+			animation: hue_rot 6s linear infinite;
+		}
+
+		@keyframes hue_rot {
+			0% {filter: hue-rotate(0deg);}
+			50% {filter: hue-rotate(360deg);}
+			100% {filter: hue-rotate(0deg);}
+		}
 
 		/* dice */
 		.die-el {
@@ -175,7 +188,7 @@
 			color: var(--fg);
 			user-select: none;
 			text-shadow: 2px 2px 4px #000;
-			font-size: 3em;
+			font-size: 2em;
 			padding: 20px;
 			transition: all 0.2s;
 			border: 2px solid var(--fg);
@@ -185,6 +198,11 @@
 			transform: translate(-2px, -2px);
 			box-shadow: 2px 2px var(--fg);
 		}
+		.clicked-bet {
+			transition: all 0.5s;
+			transform: scale(1.2);
+			box-shadow: 0 0 8px 8px gold;
+		}
 		.active {
 			filter: brightness(0.9);
 		}
@@ -192,7 +210,7 @@
 			filter: brightness(0.4);
 		}
 		.global-bet-el {
-			padding: 10px;
+			padding: 20px;
 			font-size: 2em;
 			text-shadow: 2px 2px 4px #000;
 			border: 2px solid var(--fg);
@@ -300,7 +318,20 @@
 						return res.data()
 					}
 				})
-				.catch(err => console.log(err));
+				.catch(err => {
+					console.log(err)
+					if (syncing && err.name === 'TypeError') {
+						clearInterval(syncIntervalID)
+						syncing = false
+					}
+				});
+		}
+
+		function createTag(tag, className="", innerHTML="") {
+			var el = document.createElement(tag)
+			el.className = className
+			el.innerHTML = innerHTML
+			return el
 		}
 
 		// request using a game action		
@@ -334,6 +365,8 @@
 
 		const getTimeStamp = () => gameAction("timestamp")
 
+		const getPlayerTurn = () => gameAction("playerTurn")
+
 		// actions
 		function makeRoll() {
 			gameAction("roll").then(li => {
@@ -354,6 +387,7 @@
 				.then(bets => {
 					updateBets(bets)
 					getPlayers().then(p => updatePlayers(p))
+					getPlayerTurn().then(p => updateTurn(p))
 				})
 		}
 
@@ -387,6 +421,9 @@
 		// helpers ------------------------
 
 		function updateDice(availables) {
+			if (!availables) {
+				return
+			}
 			// update
 			for (var i = 0; i < COLOR_KEYS.length; i++) {
 				if (availables.includes(COLOR_KEYS[i])) {
@@ -399,6 +436,9 @@
 
 		// color maps to location
 		function updateCamels(cam){
+			if (!cam) {
+				return
+			}
 			for (var i = 0; i < COLOR_KEYS.length; i++) {
 				var left = cam[COLOR_KEYS[i]][0] / 20 * 100
 				camels_el[i].style.left = left + "%"
@@ -410,82 +450,20 @@
 		let player_area_el = document.getElementById('players-area')
 		// install or update players
 		function updatePlayers(players) {
+			if (!players) {
+				return
+			}
 			// remove existing players
 			document.querySelectorAll(".player").forEach(e => e.remove())
 			// add all players [name, obj]
 			Object.entries(players).forEach(player => showPlayer(player[1]))
 		}
 
-		// show bets
-		var bets_list = document.querySelectorAll(".bet-el")
-		for (var i = 0; i < bets_list.length; i++) {
-			bets_list[i].style.backgroundColor = COLOR_KEYS[i]	
-			bets_list[i].innerText = BET_EMPTY
-		}
-		function updateBets(bets) {
-			// bets could have less than 5 things {color, value}
-			var availableColors = []
-			bets.forEach(b => availableColors.push(b.color))
-			for (var i = 0; i < bets_list.length; i++) {
-				if (availableColors.includes(COLOR_KEYS[i])) {
-					bets_list[i].className = "INBLOCK bet-el active"
-					bets_list[i].innerText = 
-						bets[availableColors.indexOf(COLOR_KEYS[i])].value
-				} else {
-					bets_list[i].innerText = BET_EMPTY
-					bets_list[i].className = "INBLOCK bet-el inactive"
-				}
-			}
-		}
-
-		var global_bets_el = document.querySelectorAll(".global-bet-el")
-		function updateGlobalBet(bets) {
-			for (var i = 0; i < bets.length; i++) {
-				global_bets_el[i].style.backgroundColor = bets[i].color
-				global_bets_el[i].innerText = bets[i].player
-			}
-		}
-
-		var trap_area_el = document.getElementById('trap-area')
-		for (var i = 0; i < 20; i++) {
-			// spans to color
-			// trap block
-			var trap_el = createTag("span", "INBLOCK trap-el")
-			var trap_boost = createTag("span", "trap-boost-el", ">")
-			var trap_back = createTag("span", "trap-back-el", "<");
-			// strange var capture here
-			(() => {
-				var tile = i
-				trap_boost.onclick = () => placeTrap(tile)
-				trap_back.onclick = () => placeTrap(tile, "nope")
-			})();
-			trap_el.appendChild(trap_back)
-			trap_el.appendChild(trap_boost);
-			// add to page
-			trap_area_el.appendChild(trap_el)
-		}
-		// show traps {value, player, tile}
-		function updateTraps(traps) {
-			var traps_el = document.querySelectorAll(".trap-el")
-			traps_el.forEach(el => el.className = "INBLOCK trap-el trap-off")
-			traps.forEach(t => {
-				if (t.value === 1) {
-					traps_el[t.tile].className = "INBLOCK trap-el trap-on-boost"
-				} else {
-					traps_el[t.tile].className = "INBLOCK trap-el trap-on-back"
-				}
-			})
-		}
-
-		function createTag(tag, className="", innerHTML="") {
-			var el = document.createElement(tag)
-			el.className = className
-			el.innerHTML = innerHTML
-			return el
-		}
-
 		// name, coin
 		function showPlayer(player) {
+			if (!player) {
+				return
+			}
 			// creat elements
 			// name, coins, bets, betTags, globalBets, trap
 			var player_el = createTag("div", "player")
@@ -509,6 +487,103 @@
 			player_area_el.appendChild(player_el)
 		}
 
+		function updateTurn(name) {
+			for (var p of document.querySelectorAll(".player")) {
+				if (p.firstChild.innerText === name) {
+					p.className = "player taking-turn"
+				} else {
+					p.className = "player"
+				}
+			}
+		}
+
+		// show bets
+		var bets_list = document.querySelectorAll(".bet-el")
+		for (var i = 0; i < bets_list.length; i++) {
+			bets_list[i].style.backgroundColor = COLOR_KEYS[i]	
+			bets_list[i].innerText = BET_EMPTY
+		}
+		function updateBets(bets) {
+			if (!bets) {
+				return
+			}
+			// bets could have less than 5 things {color, value}
+			var availableColors = []
+			bets.forEach(b => availableColors.push(b.color))
+			for (var i = 0; i < bets_list.length; i++) {
+				if (availableColors.includes(COLOR_KEYS[i])) {
+					bets_list[i].className = "INBLOCK bet-el active"
+					var newval = "" + bets[availableColors.indexOf(COLOR_KEYS[i])].value
+					if (bets_list[i].innerText !== newval) {
+						bets_list[i].innerText = newval
+						animateBet(bets_list[i])
+					}
+				} else {
+					bets_list[i].innerText = BET_EMPTY
+					bets_list[i].className = "INBLOCK bet-el inactive"
+				}
+			}
+		}
+
+		function animateBet(bet) {
+			bet.className += " clicked-bet"
+			setTimeout(() => {
+				var newclass = ""
+				bet.className.split(" ").forEach(c => {
+					if (c !== "clicked-bet") {
+						newclass += " " + c
+					}
+				})
+				bet.className = newclass
+			}, 2000)
+		}
+
+		var global_bets_el = document.querySelectorAll(".global-bet-el")
+		function updateGlobalBet(bets) {
+			if (!bets) {
+				return
+			}
+			for (var i = 0; i < bets.length; i++) {
+				global_bets_el[i].style.backgroundColor = bets[i].color
+				// global_bets_el[i].innerText = bets[i].player
+			}
+		}
+
+		var trap_area_el = document.getElementById('trap-area')
+		for (var i = 0; i < 20; i++) {
+			// spans to color
+			// trap block
+			var trap_el = createTag("span", "INBLOCK trap-el")
+			var trap_boost = createTag("span", "trap-boost-el", ">")
+			var trap_back = createTag("span", "trap-back-el", "<");
+			// strange var capture here
+			(() => {
+				var tile = i
+				trap_boost.onclick = () => placeTrap(tile)
+				trap_back.onclick = () => placeTrap(tile, "nope")
+			})();
+			trap_el.appendChild(trap_back)
+			trap_el.appendChild(trap_boost);
+			// add to page
+			trap_area_el.appendChild(trap_el)
+		}
+		// show traps {value, player, tile}
+		function updateTraps(traps) {
+			if (!traps) {
+				return
+			}
+			var traps_el = document.querySelectorAll(".trap-el")
+			traps_el.forEach(el => el.className = "INBLOCK trap-el trap-off")
+			traps.forEach(t => {
+				if (t.value === 1) {
+					traps_el[t.tile].className = "INBLOCK trap-el trap-on-boost"
+				} else {
+					traps_el[t.tile].className = "INBLOCK trap-el trap-on-back"
+				}
+			})
+		}
+
+
 		// setup everything
 		function fetchAll() {
 			// dice
@@ -522,9 +597,12 @@
 			getGlobalBet().then(b => updateGlobalBet(b))
 			// show traps
 			getTraps().then(t => updateTraps(t))
+			// show whose turn it is
+			getPlayerTurn().then(name => updateTurn(name))
 		}
 
 		var syncing = false
+		var syncIntervalID
 		var timestamp = 0
 
 		// start of game
@@ -532,10 +610,10 @@
 			// fetch everything
 			fetchAll()
 			// start syncing
-			// send palse periodically
+			// send pulse periodically
 			if (!syncing) {
 				syncing = true
-				setInterval(() => {
+				syncIntervalID = setInterval(() => {
 					getTimeStamp().then(t => {
 						if (t !== timestamp) {
 							timestamp = t

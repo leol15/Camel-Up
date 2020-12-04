@@ -32,6 +32,7 @@
 		- [trap], return a list of traps on the board
 		- [placeTrap], places a trap on the board
 		- [reset], resets the game to start state, players are untouched though.
-		- [timestamp] return a number indicating current game state 
+		- [timestamp] return a number indicating current game state
+		- [playerTurn] return name of player whose turn this is 
 
 
