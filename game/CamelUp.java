@@ -13,6 +13,8 @@ public class CamelUp {
 	public static final int DICE_MAX = 3;
 	//public static final int BET_MAX = 4;
 
+	// timeStamp-like state
+	private int timeStamp;
 	// states
 	private Random rand;
 	List<Integer> dice;
@@ -45,6 +47,7 @@ public class CamelUp {
 
 	@SuppressWarnings("unchecked")
 	public CamelUp() {
+		timeStamp = 0;
 		rand = new Random();
 		dice = new ArrayList<>();
 		playground = new List[LAST_TILE];
@@ -111,12 +114,20 @@ public class CamelUp {
 	//			Player Actions
 	////////////////////////////////////////////////////////////////////////////////////
 
+	private void mutated() {
+		timeStamp++;
+	}
+	public int getTimeStamp() {
+		return timeStamp;
+	}
+
 	// Add a player to the game
 	// A player is added if a name is provided
 	public boolean addPlayer(String name) {
 		if (MAX_PLAYERS == players.size()) {
 			return false;
 		}
+		mutated();
 		players.put(name, new Player(name, betTags));
 		turns.add(name); 
 		return true;
@@ -137,22 +148,22 @@ public class CamelUp {
 			if (turns.get(i).equals(old)) {
 				// turns.remove(i);
 				turns.set(i, newName);
+				mutated();
 				break;
 			}
 		}
 	}
 
-			/////////////////////////////////////////////////////////////////////
-			// 	In game action
-			////////////////////////////////////////////////////////////////////
-	// actions		
+	/////////////////////////////////////////////////////////////////////
+	// 	In game action
+	////////////////////////////////////////////////////////////////////
 	// make a roll
 	public void rollDie() {
 		// decide what color
 		int idx = rand.nextInt(dice.size());
 		// roll
 		camels[dice.get(idx)].rollDie(rand);
-
+		mutated();
 		// End game if a camel crosses the finish line
 		if (camels[dice.get(idx)].position() >= LAST_TILE - 1) {
 			// end of game -- when a camel crosses the finish line
@@ -215,6 +226,7 @@ public class CamelUp {
 	// game
 	public boolean placeWinnerGlobalBet(String player, String color) {
 		if (turns.get(myTurn).equals(player)) {
+			mutated();
 			return players.get(player).placeGlobalBet(biggestWinner, color);
 		}
 		return false;
@@ -225,6 +237,7 @@ public class CamelUp {
 	// game
 	public boolean placeLoserGlobalBet(String player, String color) {
 		if (turns.get(myTurn).equals(player)) {
+			mutated();
 			return players.get(player).placeGlobalBet(biggestLoser, color);
 		}
 		return false;
@@ -351,9 +364,11 @@ public class CamelUp {
 		updateLeaderBoard();
 		refreshBettingTags();
 		clearTrap();
+		timeStamp = 0; // reset time
 	}
 
 	private void updateTurnCounter() {
+		mutated();
 		if (myTurn + 1 == turns.size()) {
 			myTurn = 0;
 		} else {
@@ -603,7 +618,7 @@ public class CamelUp {
 			coin++;
 		}
 
-		// Any better way to do this?
+		// Any better way to do this? this looks ok!
 		public void addCoin(int val) {
 			coin += val;
 		}
