@@ -4,6 +4,8 @@ import spark.Request;
 import spark.Response;
 import spark.Spark;
 import spark.Filter;
+// websocket
+import org.eclipse.jetty.websocket.api.Session;
 
 import java.net.URLEncoder;
 import java.net.URLDecoder;
@@ -40,6 +42,8 @@ public class Server {
 		}
 		String ROOT_PATH = args[0];
 		port(PORT);
+		webSocket("/sync", SyncSocketHandler.class);
+		
 		///////////////////////
 		// CORSFILTER stuff  //
 		///////////////////////

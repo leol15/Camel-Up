@@ -1,32 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>WebsSockets</title>
-	<link rel="stylesheet" href="style.css">
 </head>
 <body>
 	<div id="chatControls">
 		<input id="message" placeholder="Type your message">
 		<button id="send">Send</button>
+		<input id="name" placeholder="name">
 	</div>
 	<ul id="userlist"> <!-- Built by JS --> </ul>
 	<div id="chat">    <!-- Built by JS --> </div>
 	<script type="text/javascript">
+
+
+		user_name = ""
+		function updateName(newName) {
+			// body...
+			user_name = newName
+			id('name').value = newName
+			sessionStorage['name'] = newName
+			toServer({type:'updatename', name: user_name})
+		}
+		// update name listener
+		id('name').addEventListener("keyup", (e) => {
+			if (e.keyCode !== 13) {
+				return
+			}
+			updateName(e.target.value)
+		})
 		//Establish the WebSocket connection and set up event handlers
 		var webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/chat");
-		webSocket.onmessage = function (msg) { updateChat(msg); };
-		webSocket.onclose = function () { alert("WebSocket connection closed") };
+		webSocket.onmessage = (msg) => updateChat(msg)
+		webSocket.onclose = () => alert("WebSocket connection closed")
+		webSocket.onopen = () => {
+			// retrive stored name
+			if (sessionStorage['name']) {
+				updateName(sessionStorage['name'])
+			}
+		}
+
+
+		function toServer(obj) {
+			if (!webSocket) {
+				console.log('connection closed')
+			}
+			webSocket.send(JSON.stringify(obj))
+		}
+
 
 		//Send message if "Send" is clicked
-		id("send").addEventListener("click", function () {
-			sendMessage(id("message").value);
-		});
+		id("send").addEventListener("click", () => sendMessage(id("message").value))
 
 		//Send message if enter is pressed in the input field
-		id("message").addEventListener("keyup", function (e) {
-			sendMessage(e.target.value)
-		});
+		id("message").addEventListener("keyup", (e) => sendMessage(e.target.value))
 
 		//Send a message if it's not empty, then clear the input field
 		function sendMessage(message) {

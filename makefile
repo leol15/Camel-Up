@@ -9,7 +9,7 @@ default:
 	echo build, run, both
 
 build:
-	javac -Xlint:unchecked $(CP) $(SP) ./server/Server.java
+	javac -Xlint:unchecked $(CP) $(SP) ./server/*.java
 
 run:
 	java $(RUNPATH) Server ./

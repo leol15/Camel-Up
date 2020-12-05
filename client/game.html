@@ -372,9 +372,10 @@
 			gameAction("roll").then(li => {
 				// update dice
 				updateDice(li)
+				sendSocketUpdate()
 				// then get camels
-				getCamels().then(cams => updateCamels(cams))
-				getTraps().then(traps => updateTraps(traps))
+				// getCamels().then(cams => updateCamels(cams))
+				// getTraps().then(traps => updateTraps(traps))
 			})
 		}
 
@@ -386,23 +387,34 @@
 			gameAction("makeBet&color=" + el.style.backgroundColor)
 				.then(bets => {
 					updateBets(bets)
-					getPlayers().then(p => updatePlayers(p))
-					getPlayerTurn().then(p => updateTurn(p))
+					sendSocketUpdate()
+					// getPlayers().then(p => updatePlayers(p))
+					// getPlayerTurn().then(p => updateTurn(p))
+
 				})
 		}
 
 		const makeWinnerGlobalBet = (col) => {
-			gameAction("makeWinnerGlobalBet&color=" + col).then(b => updateGlobalBet(b))
+			gameAction("makeWinnerGlobalBet&color=" + col).then(b => {
+				updateGlobalBet(b)
+				sendSocketUpdate()
+			})
 		}
 
 		const makeLoserGlobalBet = (col) => {
-			gameAction("makeLoserGlobalBet&color=" + col).then(b => updateGlobalBet(b))
+			gameAction("makeLoserGlobalBet&color=" + col).then(b => {
+				updateGlobalBet(b)
+				sendSocketUpdate()
+			})
 		}
 
 		// place a trap
 		const placeTrap = (tile, boost="boost") => gameAction("placeTrap&tile="
 				+ tile + "&scalar=" + boost)
-				.then(traps => updateTraps(traps))
+				.then(traps => {
+					updateTraps(traps)
+					sendSocketUpdate()
+				})
 
 		const resetGame = () => gameAction("reset").then(t => initGame())
 
@@ -611,17 +623,28 @@
 			fetchAll()
 			// start syncing
 			// send pulse periodically
-			if (!syncing) {
-				syncing = true
-				syncIntervalID = setInterval(() => {
-					getTimeStamp().then(t => {
-						if (t !== timestamp) {
-							timestamp = t
-							fetchAll()
-						}
-					})
-				}, 1500)
-			}
+			// if (!syncing) {
+			// 	syncing = true
+			// 	syncIntervalID = setInterval(() => {
+			// 		getTimeStamp().then(t => {
+			// 			if (t !== timestamp) {
+			// 				timestamp = t
+			// 				fetchAll()
+			// 			}
+			// 		})
+			// 	}, 1500)
+			// }
+		}
+
+		// websocket sync
+		var webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/sync");
+		webSocket.onmessage = (msg) => {
+			console.log("got message")
+			fetchAll()
+		}
+		webSocket.onclose = () => alert("WebSocket connection closed")
+		function sendSocketUpdate() {
+			webSocket.send(GAME_ID)
 		}
 
 		// auto start/login
