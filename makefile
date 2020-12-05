@@ -1,8 +1,9 @@
+# CP = -cp "./lib/*:../jetty-9.4.35/lib/websocket/*"
 
 
 CP = -cp "./lib/*"
-SP = -sourcepath ".:./game"
-RUNPATH = -cp "./lib/*:./lib/jetty/*:./server/:./game"
+SP = -sourcepath ".:./game:./SocketServer"
+RUNPATH = -cp "./lib/*:./lib/jetty/*:./server:./game:./SocketServer"
 
 default:
 	echo build, run, both
@@ -18,3 +19,6 @@ both:	build	run
 clean:
 	rm server/*.class game/*.class
 
+ss:
+	javac $(CP) $(SP) ./SocketServer/*.java
+	java $(RUNPATH) SocketServer
