@@ -215,6 +215,9 @@
 			text-shadow: 2px 2px 4px #000;
 			border: 2px solid var(--fg);
 		}
+		.global-bet-el:hover {
+			cursor: pointer;
+		}
 
 
 	</style>
@@ -275,11 +278,20 @@
 		</div>
 		<div>
 			<span>Global Bets</span>
-			<span class="INBLOCK global-bet-el"></span>
-			<span class="INBLOCK global-bet-el"></span>
-			<span class="INBLOCK global-bet-el"></span>
-			<span class="INBLOCK global-bet-el"></span>
-			<span class="INBLOCK global-bet-el"></span>
+			<div class="winning-global-bet-area">
+				<span class="INBLOCK global-bet-el" onclick="makeWinnerGlobalBet(this)"></span>
+				<span class="INBLOCK global-bet-el" onclick="makeWinnerGlobalBet(this)"></span>
+				<span class="INBLOCK global-bet-el" onclick="makeWinnerGlobalBet(this)"></span>
+				<span class="INBLOCK global-bet-el" onclick="makeWinnerGlobalBet(this)"></span>
+				<span class="INBLOCK global-bet-el" onclick="makeWinnerGlobalBet(this)"></span>
+			</div>
+			<div class="loosing-global-bet-area">
+				<span class="INBLOCK global-bet-el" onclick="makeLoserGlobalBet(this)"></span>
+				<span class="INBLOCK global-bet-el" onclick="makeLoserGlobalBet(this)"></span>
+				<span class="INBLOCK global-bet-el" onclick="makeLoserGlobalBet(this)"></span>
+				<span class="INBLOCK global-bet-el" onclick="makeLoserGlobalBet(this)"></span>
+				<span class="INBLOCK global-bet-el" onclick="makeLoserGlobalBet(this)"></span>
+			</div>
 		</div>
 	</div>
 
@@ -318,13 +330,7 @@
 						return res.data()
 					}
 				})
-				.catch(err => {
-					console.log(err)
-					if (syncing && err.name === 'TypeError') {
-						clearInterval(syncIntervalID)
-						syncing = false
-					}
-				});
+				.catch(err => console.log(err))
 		}
 
 		function createTag(tag, className="", innerHTML="") {
@@ -342,10 +348,9 @@
 			if (name !== "" && (event.key === "Enter" || event.keyCode === 12)) {
 				gameAction("uname&uname=" + name)
 					.then(name => {
-						console.log("new name is " + name)
 						user_name = name;
 						////// start of game!
-						initGame();
+						sendSocketUpdate();
 					})
 			}
 		}
@@ -371,11 +376,7 @@
 		function makeRoll() {
 			gameAction("roll").then(li => {
 				// update dice
-				updateDice(li)
 				sendSocketUpdate()
-				// then get camels
-				// getCamels().then(cams => updateCamels(cams))
-				// getTraps().then(traps => updateTraps(traps))
 			})
 		}
 
@@ -386,24 +387,20 @@
 				return
 			gameAction("makeBet&color=" + el.style.backgroundColor)
 				.then(bets => {
-					updateBets(bets)
 					sendSocketUpdate()
-					// getPlayers().then(p => updatePlayers(p))
-					// getPlayerTurn().then(p => updateTurn(p))
-
 				})
 		}
 
-		const makeWinnerGlobalBet = (col) => {
+		const makeWinnerGlobalBet = (el) => {
+			var col = el.style.backgroundColor.toUpperCase()
 			gameAction("makeWinnerGlobalBet&color=" + col).then(b => {
-				updateGlobalBet(b)
 				sendSocketUpdate()
 			})
 		}
 
-		const makeLoserGlobalBet = (col) => {
+		const makeLoserGlobalBet = (el) => {
+			var col = el.style.backgroundColor.toUpperCase()
 			gameAction("makeLoserGlobalBet&color=" + col).then(b => {
-				updateGlobalBet(b)
 				sendSocketUpdate()
 			})
 		}
@@ -412,11 +409,12 @@
 		const placeTrap = (tile, boost="boost") => gameAction("placeTrap&tile="
 				+ tile + "&scalar=" + boost)
 				.then(traps => {
-					updateTraps(traps)
 					sendSocketUpdate()
 				})
 
-		const resetGame = () => gameAction("reset").then(t => initGame())
+		const resetGame = () => gameAction("reset").then(t => {
+			sendSocketUpdate()
+		})
 
 		COLOR_KEYS = ["RED", "GREEN", "BLUE", "PURPLE", "GOLD", "BLACK", "WHITE"]
 		// game states
@@ -550,14 +548,27 @@
 			}, 2000)
 		}
 
-		var global_bets_el = document.querySelectorAll(".global-bet-el")
+		var win_global_bets_el = document.querySelectorAll(".winning-global-bet-area .global-bet-el")
+		var loose_global_bets_el = document.querySelectorAll(".loosing-global-bet-area .global-bet-el")
+		for (var i = 0; i < win_global_bets_el.length; i++) {
+			win_global_bets_el[i].style.backgroundColor = COLOR_KEYS[i]
+			loose_global_bets_el[i].style.backgroundColor = COLOR_KEYS[i]
+		}
 		function updateGlobalBet(bets) {
 			if (!bets) {
 				return
 			}
-			for (var i = 0; i < bets.length; i++) {
-				global_bets_el[i].style.backgroundColor = bets[i].color
-				// global_bets_el[i].innerText = bets[i].player
+			var openColors = []
+			bets.forEach(b => openColors.push(b.color))
+			for (var i = 0; i < win_global_bets_el.length; i++) {
+				var col = win_global_bets_el[i].style.backgroundColor.toUpperCase()
+				if (openColors.includes(col)) {
+					win_global_bets_el[i].style.boxShadow = "0 0 2px 2px #eee"
+					loose_global_bets_el[i].style.boxShadow = "0 0 2px 2px #eee"
+				} else {
+					win_global_bets_el[i].style.boxShadow = "0 0 0px #eee"
+					loose_global_bets_el[i].style.boxShadow = "0 0 0px #eee"
+				}
 			}
 		}
 
@@ -595,7 +606,6 @@
 			})
 		}
 
-
 		// setup everything
 		function fetchAll() {
 			// dice
@@ -603,53 +613,27 @@
 			// camels
 			getCamels().then(cam => updateCamels(cam));
 			// players
-			getPlayers().then(p => updatePlayers(p))
+			getPlayers().then(p => {
+				updatePlayers(p)
+				getPlayerTurn().then(name => updateTurn(name))
+			})
 			// show bets
 			getBet().then(b => updateBets(b))
 			getGlobalBet().then(b => updateGlobalBet(b))
 			// show traps
 			getTraps().then(t => updateTraps(t))
 			// show whose turn it is
-			getPlayerTurn().then(name => updateTurn(name))
-		}
-
-		var syncing = false
-		var syncIntervalID
-		var timestamp = 0
-
-		// start of game
-		function initGame() {
-			// fetch everything
-			fetchAll()
-			// start syncing
-			// send pulse periodically
-			// if (!syncing) {
-			// 	syncing = true
-			// 	syncIntervalID = setInterval(() => {
-			// 		getTimeStamp().then(t => {
-			// 			if (t !== timestamp) {
-			// 				timestamp = t
-			// 				fetchAll()
-			// 			}
-			// 		})
-			// 	}, 1500)
-			// }
 		}
 
 		// websocket sync
 		var webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/sync");
-		webSocket.onmessage = (msg) => {
-			console.log("got message")
-			fetchAll()
-		}
-		webSocket.onclose = () => alert("WebSocket connection closed")
-		function sendSocketUpdate() {
-			webSocket.send(GAME_ID)
-		}
+		webSocket.onmessage = (msg) => fetchAll()
+		webSocket.onclose = () => console.log("socket closed")
+		const sendSocketUpdate = () => webSocket.send(GAME_ID)
 
 		// auto start/login
 		if (document.getElementById('name-input').value !== "") {
-			initGame()
+			fetchAll()
 		}
 		
 

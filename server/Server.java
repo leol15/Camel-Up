@@ -58,10 +58,10 @@ public class Server {
 			@Override
 			public void handle(Request request, Response response) {
 				corsHeaders.forEach(response::header);
-				System.out.print("____IP: ");
-				System.out.print(request.ip());
-				System.out.print(" -> ");
-				System.out.println(request.url());
+				// System.out.print("____IP: ");
+				// System.out.print(request.ip());
+				// System.out.print(" -> ");
+				// System.out.println(request.url());
 			}
 		};
 		Spark.afterAfter(filter); // Applies this filter even if there's a halt() or exception.
@@ -154,7 +154,6 @@ public class Server {
 			
 			// resolve player name first
 			String playerName = resolvePlayerName(req, res, game);
-			System.out.println("player name: " + playerName);
 			if (playerName == null)
 				return "authenticate failed, please create a name to play";
 			// handle request
@@ -325,7 +324,6 @@ public class Server {
 
 	public static String readFileToString(String pathStr) {
 	    Path path = Paths.get(pathStr);
-	    System.out.println(path.toAbsolutePath());
 	    StringBuilder sb = new StringBuilder();
 	    try {
 		    BufferedReader reader = Files.newBufferedReader(path);

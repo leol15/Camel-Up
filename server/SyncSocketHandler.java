@@ -42,7 +42,6 @@ public class SyncSocketHandler {
     		return;
         rooms.get(msg).stream().filter(Session::isOpen).forEach(session -> {
 			try {
-				System.out.println("sending to " + msg);
 				session.getRemote().sendString(msg);
 			} catch (Exception e) {
 				e.printStackTrace();
