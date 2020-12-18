@@ -287,7 +287,9 @@ public class CamelUp {
 		if (endGame)
 			return;
 		for (Camel c : camels) {
-			sortCamel.add(c);
+			if (!c.color().equals("BLACK") && !c.color().equals("WHITE")) {
+				sortCamel.add(c);
+			}
 		}
 		for (int i = 0; i < ranking.length; i++) {
 			ranking[i] = sortCamel.poll().color();
@@ -368,6 +370,7 @@ public class CamelUp {
 		refreshBettingTags();
 		resolveGlobalBets();
 		clearTrap();
+		endGame = true;
 	}
 
 	// state change
