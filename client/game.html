@@ -626,7 +626,12 @@
 		}
 
 		// websocket sync
-		var webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/sync");
+		var webSocket;
+		if (location.protocol !== 'https:') {
+			webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/sync");
+		} else {
+			webSocket = new WebSocket("wss://" + location.hostname + ":" + location.port + "/sync");
+		}
 		webSocket.onmessage = (msg) => fetchAll()
 		webSocket.onclose = () => console.log("socket closed")
 		const sendSocketUpdate = () => webSocket.send(GAME_ID)
