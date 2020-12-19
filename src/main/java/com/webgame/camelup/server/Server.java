@@ -43,7 +43,7 @@ public class Server {
 			return;
 		}
 		String ROOT_PATH = args[0];
-		port(PORT);
+		port(getHerokuAssignedPort());
 		webSocket("/sync", SyncSocketHandler.class);
 		
 		///////////////////////
@@ -337,5 +337,13 @@ public class Server {
 	    }
 	    return sb.toString();
 	}
+
+	static int getHerokuAssignedPort() {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        if (processBuilder.environment().get("PORT") != null) {
+            return Integer.parseInt(processBuilder.environment().get("PORT"));
+        }
+        return PORT; //return default port if heroku-port isn't set (i.e. on localhost)
+    }
 }
 

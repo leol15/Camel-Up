@@ -6,7 +6,8 @@ SP = -sourcepath ".:./game:./SocketServer"
 RUNPATH = -cp "./lib/*:./lib/jetty/*:./server:./game:./SocketServer"
 
 default:
-	echo build, run, both
+	@echo project moved to mvn, use mvn install
+	@echo build, run, both
 
 build:
 	javac -Xlint:unchecked $(CP) $(SP) ./server/*.java
