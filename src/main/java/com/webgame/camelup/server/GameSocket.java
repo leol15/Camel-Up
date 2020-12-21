@@ -17,8 +17,6 @@ import java.util.function.Function;
 @WebSocket
 public class GameSocket {
 
-    public static 
-
     interface ServerMethod {
         void run(Set<Session> sessions, CamelUp game);
     }
