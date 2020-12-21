@@ -24,16 +24,19 @@ public class GameSocket {
     }
 
     private class ClientInfo {
-        String gameID;
-        String playerID;
-        String method;
-        Object value;
+        String gameID;      // room link
+        String playerID;    // player id
+        String method;      // communication method
+        Object value;       // actual value said
     }
 
     private static Gson GSON = new Gson();
 
+    // room id is the key
     private Map<String, Set<Session>> playersMap = new ConcurrentHashMap<>();
     private Map<String, CamelUp> gamesMap = new ConcurrentHashMap<>();
+
+    // todo: manage user id
     private Map<Session, String> sessionToRoom = new ConcurrentHashMap<>();
     private Map<Session, String> sessionToPlayerID = new ConcurrentHashMap<>();
 
@@ -44,25 +47,28 @@ public class GameSocket {
     // set up the methods
     private void init() {
         SERVER_METHOD_MAP = new HashMap<>();
-        // observations
+        // create observation routes
         SERVER_METHOD_MAP.put(Const.INFO_PLAYERS, (sessions, game) -> {
-                broadcastState(sessions, Const.INFO_PLAYERS, game.getPlayers());
-            });
+            broadcastState(sessions, Const.INFO_PLAYERS, game.getPlayers());
+        });
         SERVER_METHOD_MAP.put(Const.INFO_DICE, (sessions, game) -> {
-                broadcastState(sessions, Const.INFO_DICE, game.getDice());
-            });
+            broadcastState(sessions, Const.INFO_DICE, game.getDice());
+        });
         SERVER_METHOD_MAP.put(Const.INFO_CAMELS, (sessions, game) -> {
-                broadcastState(sessions, Const.INFO_CAMELS, game.getCamels());
-            });
+            broadcastState(sessions, Const.INFO_CAMELS, game.getCamels());
+        });
         SERVER_METHOD_MAP.put(Const.INFO_BET, (sessions, game) -> {
-                broadcastState(sessions, Const.INFO_BET, game.getBet());
-            });
+            broadcastState(sessions, Const.INFO_BET, game.getBet());
+        });
         SERVER_METHOD_MAP.put(Const.INFO_PLAYER_SCORE, (sessions, game) -> {
-                broadcastState(sessions, Const.INFO_PLAYER_SCORE, game.getPlayerScore());
-            });
+            broadcastState(sessions, Const.INFO_PLAYER_SCORE, game.getPlayerScore());
+        });
         SERVER_METHOD_MAP.put(Const.INFO_TRAP, (sessions, game) -> {
-                broadcastState(sessions, Const.INFO_TRAP, game.getTrap());
-            });
+            broadcastState(sessions, Const.INFO_TRAP, game.getTrap());
+        });
+        SERVER_METHOD_MAP.put(Const.INFO_PLAYER_TURN, (sessions, game) -> {
+            broadcastState(sessions, Const.INFO_PLAYER_TURN, game.getPlayerTurn());
+        });
     }
 
 
@@ -78,93 +84,128 @@ public class GameSocket {
 
     @OnWebSocketClose
     public void onClose(Session user, int statusCode, String reason) {
-        
+        // todo remove player
+        String roomID = sessionToRoom.get(user);
+        String playerID = sessionToPlayerID.get(user);
+        if (roomID != null && playerID != null) {
+            Set<Session> sessions = playersMap.get(roomID);
+            // remove from sessions
+            if (sessions != null) sessions.remove(user);
+            // todo: remove from game
+
+            // remove room
+            if (sessions.isEmpty()) {
+                playersMap.remove(roomID);
+                gamesMap.remove(roomID);
+                System.out.println("removing room: " + roomID);
+            }
+        }
     }
 
     @OnWebSocketMessage
     public void onMessage(Session user, String message) {
-        System.err.println("Getting msg: " + message);
         // parse info
         ClientInfo client = GSON.fromJson(message, ClientInfo.class);
         String playerID = client.playerID;
-        Set<Session> playerSessions = playersMap.get(client.gameID);
+        Set<Session> allSessions = playersMap.get(client.gameID);
         CamelUp game = gamesMap.get(client.gameID);
 
         // check validity
-        if (!client.method.equals(Const.INFO_ID) && (playerSessions == null || game == null)) {
+        if (!client.method.equals(Const.INFO_ID) &&
+            (allSessions == null || game == null)) {
             System.err.println("Game id " + client.gameID + " does not exists");
             return;
         }
         // process actions
-        System.err.println("method: " + client.method);
         switch (client.method) {
             case Const.INFO_ID:
-                String name = (String) client.value;
+                playerID = (String) client.value;
+                // check game exists
+                if (sessionToRoom.containsKey(user)) {
+                    game = gamesMap.get(sessionToRoom.get(user));
+                }
                 // new player
                 if (game == null) {
                     // new game
                     game = new CamelUp();
-                    playerSessions = new HashSet<>();
+                    allSessions = new HashSet<>();
                     gamesMap.put(client.gameID, game);
-                    playersMap.put(client.gameID, playerSessions);
+                    playersMap.put(client.gameID, allSessions);
                 } else {
                     // random id?
-                    while (game.containsPlayer(name))
-                        name += genRandomString(1);
+                    while (game.containsPlayer(playerID))
+                        playerID += genRandomString(1);
                 }
-                game.addPlayer(name);
-                playerSessions.add(user);
+                game.addPlayer(playerID);
+                allSessions.add(user);
                 // add to session mappings
-                sessionToPlayerID.put(user, name);
+                sessionToPlayerID.put(user, playerID);
                 sessionToRoom.put(user, client.gameID);
-                sendString(user, GSON.toJson(createMessageMapping(Const.INFO_ID, name)));
-                SERVER_METHOD_MAP.get(Const.INFO_PLAYERS).run(playerSessions, game);
-                // also send everything to user
+                // send id to new user
+                sendString(user, 
+                    GSON.toJson(createMessageMapping(Const.INFO_ID, playerID)));
+                // announce a new player came, done in the end
+                // also send everything to the new user
                 Set<Session> tmp = new HashSet<>();
                 tmp.add(user);
-                for (String s : SERVER_METHOD_MAP.keySet()) {
-                    SERVER_METHOD_MAP.get(s).run(tmp, game);
-                }
+                serverApplyAll(tmp, game);
                 break;
             case Const.ACTION_ROLL:
-                System.err.println("rolling " + playerID);
                 game.rollDie(playerID);
-                SERVER_METHOD_MAP.get(Const.INFO_DICE).run(playerSessions, game);
-                SERVER_METHOD_MAP.get(Const.INFO_CAMELS).run(playerSessions, game);
+                serverApplyAll(allSessions, game, 
+                    Const.INFO_DICE, Const.INFO_CAMELS);
                 break;
             case Const.ACTION_MAKE_BET:
                 game.placeBets(playerID, (String) client.value);
-                SERVER_METHOD_MAP.get(Const.INFO_BET).run(playerSessions, game);
+                serverApplyAll(allSessions, game, Const.INFO_BET);
                 break;
             case Const.ACTION_WINNER_BET:
                 game.placeWinnerGlobalBet(playerID, (String) client.value);
-                // todo just give the global bet back
+                // todo just give the global bet back?
                 break;
             case Const.ACTION_LOSER_BET:
                 game.placeLoserGlobalBet(playerID, (String) client.value);
-                // todo just give the global bet back
+                // todo just give the global bet back?
                 break;
             case Const.ACTION_PLACE_TRAP:
                 String[] tile_boost = (String[]) client.value;
                 if (tile_boost.length != 2) return;
-                int tile = Integer.parseInt(tile_boost[0]);
-                game.placeTrap(playerID, tile, tile_boost[1].equals("boost"));
-                SERVER_METHOD_MAP.get(Const.INFO_TRAP);
+                game.placeTrap(playerID,
+                    Integer.parseInt(tile_boost[0]),
+                    tile_boost[1].equals("boost"));
+                serverApplyAll(allSessions, game, Const.INFO_TRAP);
                 break;
             case Const.ACTION_RESET:
                 // update all
-                for (String s : SERVER_METHOD_MAP.keySet())
-                    SERVER_METHOD_MAP.get(s).run(playerSessions, game);
+                serverApplyAll(allSessions, game);
                 break;
             default:
                 System.err.println("Unknown method: " + client.method);
         }
+        // also broadcast whose turn it is
+        serverApplyAll(allSessions, game,
+            Const.INFO_PLAYERS, Const.INFO_PLAYER_TURN);
     }
 
-    // server responses
-
-
     // convinent helpers
+    
+    /*
+        apply methods to all sessions
+        if "method" is empty, apply all methods avaliable
+        from SERVER_METHOD_MAP
+    */
+    private void serverApplyAll(Set<Session> sessions, CamelUp game,
+        String... methods) {
+        if (methods.length == 0) {
+            for (String m : SERVER_METHOD_MAP.keySet())
+                SERVER_METHOD_MAP.get(m).run(sessions, game);
+        } else {
+            for (String m : methods) {
+                if (!SERVER_METHOD_MAP.containsKey(m)) continue;
+                SERVER_METHOD_MAP.get(m).run(sessions, game);
+            }
+        }
+    }
 
     public String genRandomString(int len) {
         Random r = new Random();
@@ -190,27 +231,12 @@ public class GameSocket {
         }
     }
 
-    private void broadcastMessage(Set<Session> playerSessions, Object obj) {
-        String msg = GSON.toJson(obj);
-        playerSessions.stream().filter(Session::isOpen)
-            .forEach(session -> {
-    			try {
-    				session.getRemote().sendString(msg);
-    			} catch (Exception e) {
-    				e.printStackTrace();
-    			}
-            });
-    }
-
     private void broadcastState(
         Set<Session> playerSessions, String method, Object value) {
-        Map<String, Object> obj = new HashMap<>();
-        obj.put("method", method);
-        obj.put("value", value);
-        String msg = GSON.toJson(obj);
-        System.err.println("sending " + msg);
+        String msg = GSON.toJson(createMessageMapping(method, value));
         playerSessions.stream().filter(Session::isOpen)
             .forEach(sess -> sendString(sess, msg));
     }
 
 }
+

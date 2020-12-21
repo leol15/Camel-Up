@@ -5,7 +5,6 @@
 
 class GameManager {
 	constructor(websocket) {
-		console.log("ctor")
 		// get game id
 		this.gameID = window.location.pathname.split("/")[2]
 		this.playerID = ""
@@ -18,18 +17,17 @@ class GameManager {
 				location.hostname + ":" + location.port + "/socket")
 		}
 
-		this.socket.onopen = () => {
-			// send id
-		}
 		this.socket.onmessage = (msg) => {
 			this.handleMessage(msg.data)
 		}
-		this.socket.onclose = () => {
-
-		}
+		// send id when user is ready
+		this.socket.onopen = () => { }
+		this.socket.onclose = () => { }
 	}
 
 	newPlayer(name) {
+		// disabling change name
+		if (this.playerID !== "") return;
 		this.sendMessage("id", name)
 	}
 
@@ -78,6 +76,8 @@ class GameManager {
 			updateTraps(res.value)
 		} else if (res.method === "playerScore") {
 			// todo
+		} else if (res.method === "playerTurn") {
+			updateTurn(res.value)
 		} else {
 			console.log("unknown msg")
 			console.log(res)
@@ -95,7 +95,6 @@ class GameManager {
 
 
 // todo: auto start/login
-
 
 // start!
 var GAME = new GameManager()
@@ -128,4 +127,8 @@ function makeWinnerGlobalBet(el) {
 
 function makeLoserGlobalBet(el) {
 	GAME.makeLoserGlobalBet(el)
+}
+
+function placeTrap(tile, boost="boost") {
+	GAME.placeTrap(tile, boost)
 }

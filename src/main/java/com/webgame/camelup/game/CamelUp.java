@@ -529,7 +529,7 @@ public class CamelUp {
 		}
 		
 		public void rollDie(Random r) {
-			System.out.println(this + ": moving");
+			// System.out.println(this + ": moving");
 			// already at end??
 			if ((index == 19 && mult > 0) || (index == 0 && mult < 0))
 				return;
@@ -543,7 +543,7 @@ public class CamelUp {
 				players.get(traps.get(newIdx).getPlayer()).addCoin(1);
 			}
 
-			System.out.println(this + ": moving to " + newIdx);
+			// System.out.println(this + ": moving to " + newIdx);
 
 			// end of line
 			// move everything
