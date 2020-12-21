@@ -218,8 +218,6 @@
 		.global-bet-el:hover {
 			cursor: pointer;
 		}
-
-
 	</style>
 </head>
 <body>
@@ -626,6 +624,7 @@
 		}
 
 		// websocket sync
+		/*
 		var webSocket;
 		if (location.protocol !== 'https:') {
 			webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/sync");
@@ -635,14 +634,15 @@
 		webSocket.onmessage = (msg) => fetchAll()
 		webSocket.onclose = () => console.log("socket closed")
 		const sendSocketUpdate = () => webSocket.send(GAME_ID)
-
+		*/
 		// auto start/login
 		if (document.getElementById('name-input').value !== "") {
 			fetchAll()
 		}
-		
-
+	
 	</script>
+	
+	<script src="/game.js"></script>
 </body>
 </html>
 

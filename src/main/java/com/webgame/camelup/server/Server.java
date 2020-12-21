@@ -42,9 +42,14 @@ public class Server {
 			System.err.println("Usage: exe rootdir");
 			return;
 		}
+
+		// static folder todo
+		Spark.staticFiles.location("/public");
+
 		String ROOT_PATH = args[0];
 		port(getHerokuAssignedPort());
-		webSocket("/sync", SyncSocketHandler.class);
+		// webSocket("/sync", SyncSocketHandler.class);
+		webSocket("/socket", GameSocket.class);
 		
 		///////////////////////
 		// CORSFILTER stuff  //
@@ -80,21 +85,21 @@ public class Server {
 
 		// default
 		// should we serve the web as well?
-		get(HOME_ROUTE, (req, res) -> {
-			try {
-				// read a local html file
-				// and send it back
-				// Map<String, String[]> mp = req.queryMap().toMap();
-				res.status(200);
-				res.type("text/html"); 
-				res.body(readFileToString(ROOT_PATH + "/client/landing.html"));
-				return "";
-			} catch (Exception e) {
-				System.out.println(e);
-				e.printStackTrace();
-				return "bad";
-			}
-		});
+		// get(HOME_ROUTE, (req, res) -> {
+		// 	try {
+		// 		// read a local html file
+		// 		// and send it back
+		// 		// Map<String, String[]> mp = req.queryMap().toMap();
+		// 		res.status(200);
+		// 		res.type("text/html"); 
+		// 		res.body(readFileToString(ROOT_PATH + "/client/landing.html"));
+		// 		return "";
+		// 	} catch (Exception e) {
+		// 		System.out.println(e);
+		// 		e.printStackTrace();
+		// 		return "bad";
+		// 	}
+		// });
 
 
 		// return a new game link to use

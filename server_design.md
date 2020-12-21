@@ -35,4 +35,42 @@
 		- [timestamp] return a number indicating current game state
 		- [playerTurn] return name of player whose turn this is 
 
+## WebSocket communications (JSON)
 
+
+### Server to client
+
+message string: "{method:str, value:...}"
+
+- method: 
+	+ id
+		* user_assigned_id
+	+ players
+		* 
+	+ dice 
+		* [active_color_1, active_color_2...]
+	+ camels
+		*  
+	+ bet
+		* 
+	+ globalBet
+		* 	
+	+ trap
+		* 
+	+ playerTurn
+		*
+	+ playerScore
+		*
+
+### Client to Server (only actions!)
+
+message string: "{gameID:..., method:..., value:...}"
+
+
+- method:
+	+ roll
+	+ makeBet
+	+ makeWinnerGlobalBet
+	+ makeLoserGlobalBet
+	+ placeTrap
+	+ reset
