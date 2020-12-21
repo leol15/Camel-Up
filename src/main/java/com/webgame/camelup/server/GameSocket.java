@@ -30,11 +30,12 @@ public class GameSocket {
         Object value;
     }
 
-    private String sender, msg;
+    private static Gson GSON = new Gson();
 
     private Map<String, Set<Session>> playersMap = new ConcurrentHashMap<>();
     private Map<String, CamelUp> gamesMap = new ConcurrentHashMap<>();
-    private static Gson GSON = new Gson();
+    private Map<Session, String> sessionToRoom = new ConcurrentHashMap<>();
+    private Map<Session, String> sessionToPlayerID = new ConcurrentHashMap<>();
 
     // methods wrapped together
     private Map<String, ServerMethod> SERVER_METHOD_MAP;
@@ -82,52 +83,81 @@ public class GameSocket {
 
     @OnWebSocketMessage
     public void onMessage(Session user, String message) {
+        System.err.println("Getting msg: " + message);
         // parse info
-        System.out.println("message: " + message);
         ClientInfo client = GSON.fromJson(message, ClientInfo.class);
+        String playerID = client.playerID;
         Set<Session> playerSessions = playersMap.get(client.gameID);
         CamelUp game = gamesMap.get(client.gameID);
-        if (!client.method.equals("id") && (playerSessions == null || game == null)) {
+
+        // check validity
+        if (!client.method.equals(Const.INFO_ID) && (playerSessions == null || game == null)) {
             System.err.println("Game id " + client.gameID + " does not exists");
             return;
         }
         // process actions
+        System.err.println("method: " + client.method);
         switch (client.method) {
-            case "id":
+            case Const.INFO_ID:
                 String name = (String) client.value;
-                // random id?
+                // new player
                 if (game == null) {
                     // new game
                     game = new CamelUp();
+                    playerSessions = new HashSet<>();
                     gamesMap.put(client.gameID, game);
-                    playersMap.put(client.gameID, new HashSet<>());
-                    playersMap.get(client.gameID).add(user);
+                    playersMap.put(client.gameID, playerSessions);
                 } else {
+                    // random id?
                     while (game.containsPlayer(name))
                         name += genRandomString(1);
                 }
                 game.addPlayer(name);
-                sendString(user, GSON.toJson(createMessageMapping("id", name)));
+                playerSessions.add(user);
+                // add to session mappings
+                sessionToPlayerID.put(user, name);
+                sessionToRoom.put(user, client.gameID);
+                sendString(user, GSON.toJson(createMessageMapping(Const.INFO_ID, name)));
+                SERVER_METHOD_MAP.get(Const.INFO_PLAYERS).run(playerSessions, game);
+                // also send everything to user
+                Set<Session> tmp = new HashSet<>();
+                tmp.add(user);
+                for (String s : SERVER_METHOD_MAP.keySet()) {
+                    SERVER_METHOD_MAP.get(s).run(tmp, game);
+                }
                 break;
-            case "roll":
-                game.rollDie(client.playerID);
+            case Const.ACTION_ROLL:
+                System.err.println("rolling " + playerID);
+                game.rollDie(playerID);
                 SERVER_METHOD_MAP.get(Const.INFO_DICE).run(playerSessions, game);
                 SERVER_METHOD_MAP.get(Const.INFO_CAMELS).run(playerSessions, game);
                 break;
-            case "makeBet":
-                game.placeBets(client.playerID, (String) client.value);
+            case Const.ACTION_MAKE_BET:
+                game.placeBets(playerID, (String) client.value);
                 SERVER_METHOD_MAP.get(Const.INFO_BET).run(playerSessions, game);
                 break;
-            case "makeWinnerGlobalBet":
+            case Const.ACTION_WINNER_BET:
+                game.placeWinnerGlobalBet(playerID, (String) client.value);
+                // todo just give the global bet back
                 break;
-            case "makeLoserGlobalBet":
+            case Const.ACTION_LOSER_BET:
+                game.placeLoserGlobalBet(playerID, (String) client.value);
+                // todo just give the global bet back
                 break;
-            case "placeTrap":
+            case Const.ACTION_PLACE_TRAP:
+                String[] tile_boost = (String[]) client.value;
+                if (tile_boost.length != 2) return;
+                int tile = Integer.parseInt(tile_boost[0]);
+                game.placeTrap(playerID, tile, tile_boost[1].equals("boost"));
+                SERVER_METHOD_MAP.get(Const.INFO_TRAP);
                 break;
-            case "reset":
+            case Const.ACTION_RESET:
+                // update all
+                for (String s : SERVER_METHOD_MAP.keySet())
+                    SERVER_METHOD_MAP.get(s).run(playerSessions, game);
                 break;
             default:
-
+                System.err.println("Unknown method: " + client.method);
         }
     }
 
@@ -178,14 +208,9 @@ public class GameSocket {
         obj.put("method", method);
         obj.put("value", value);
         String msg = GSON.toJson(obj);
+        System.err.println("sending " + msg);
         playerSessions.stream().filter(Session::isOpen)
-            .forEach(sess -> {
-                try {
-                    sess.getRemote().sendString(msg);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+            .forEach(sess -> sendString(sess, msg));
     }
 
 }

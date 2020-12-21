@@ -64,7 +64,7 @@ message string: "{method:str, value:...}"
 
 ### Client to Server (only actions!)
 
-message string: "{gameID:..., method:..., value:...}"
+message string: "{gameID:..., playerID:..., method:..., value:...}"
 
 
 - method:

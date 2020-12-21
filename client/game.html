@@ -297,7 +297,6 @@
 		// get link name
 		let GAME_ID = window.location.pathname.split("/")[2]
 		// address to communicate
-		let HOST_URL = window.location.origin + "/gamespeaks/" + GAME_ID
 		let user_name = ""
 		// fill banner with link address
 		document.getElementById('banner').innerHTML =
@@ -313,24 +312,6 @@
 			tmpIn.remove();
 		}
 
-		// return a promise, use then
-		// will try to consume a json or text
-		function fetch_url(url) {
-			// console.log("fetching [" + url + "]")
-			return fetch(url)
-				.then(res => {
-					let type = res.headers.get('content-type')
-					if (type.includes("application/json")) {
-						return res.json()
-					} else if (type.includes("text")) {
-						return res.text()
-					} else {
-						return res.data()
-					}
-				})
-				.catch(err => console.log(err))
-		}
-
 		function createTag(tag, className="", innerHTML="") {
 			var el = document.createElement(tag)
 			el.className = className
@@ -338,82 +319,7 @@
 			return el
 		}
 
-		// request using a game action		
-		const gameAction = (str) => fetch_url(HOST_URL + "?action=" + encodeURI(str))
-
-		// set uname send address
-		function createPlayer(name) {
-			if (name !== "" && (event.key === "Enter" || event.keyCode === 12)) {
-				gameAction("uname&uname=" + name)
-					.then(name => {
-						user_name = name;
-						////// start of game!
-						sendSocketUpdate();
-					})
-			}
-		}
-
-		// getters: routes with server defined keys
-		const getPlayers = () => gameAction("players")
-
-		const getCamels = () => gameAction("camels")
-
-		const getDice = () => gameAction("dice")
-
-		const getBet = () => gameAction("bet")
-
-		const getTraps = () => gameAction("trap")
-
-		const getGlobalBet = () => gameAction("globalBet")
-
-		const getTimeStamp = () => gameAction("timestamp")
-
-		const getPlayerTurn = () => gameAction("playerTurn")
-
 		// actions
-		function makeRoll() {
-			gameAction("roll").then(li => {
-				// update dice
-				sendSocketUpdate()
-			})
-		}
-
-		// place a bet
-		var BET_EMPTY = "0"
-		function placeBet(el) {
-			if (el.innerText === BET_EMPTY)
-				return
-			gameAction("makeBet&color=" + el.style.backgroundColor)
-				.then(bets => {
-					sendSocketUpdate()
-				})
-		}
-
-		const makeWinnerGlobalBet = (el) => {
-			var col = el.style.backgroundColor.toUpperCase()
-			gameAction("makeWinnerGlobalBet&color=" + col).then(b => {
-				sendSocketUpdate()
-			})
-		}
-
-		const makeLoserGlobalBet = (el) => {
-			var col = el.style.backgroundColor.toUpperCase()
-			gameAction("makeLoserGlobalBet&color=" + col).then(b => {
-				sendSocketUpdate()
-			})
-		}
-
-		// place a trap
-		const placeTrap = (tile, boost="boost") => gameAction("placeTrap&tile="
-				+ tile + "&scalar=" + boost)
-				.then(traps => {
-					sendSocketUpdate()
-				})
-
-		const resetGame = () => gameAction("reset").then(t => {
-			sendSocketUpdate()
-		})
-
 		COLOR_KEYS = ["RED", "GREEN", "BLUE", "PURPLE", "GOLD", "BLACK", "WHITE"]
 		// game states
 		const dice_el = document.querySelectorAll(".die-el")
@@ -506,6 +412,7 @@
 		}
 
 		// show bets
+		var BET_EMPTY = "0"
 		var bets_list = document.querySelectorAll(".bet-el")
 		for (var i = 0; i < bets_list.length; i++) {
 			bets_list[i].style.backgroundColor = COLOR_KEYS[i]	
@@ -604,42 +511,6 @@
 			})
 		}
 
-		// setup everything
-		function fetchAll() {
-			// dice
-			getDice().then(li => updateDice(li));
-			// camels
-			getCamels().then(cam => updateCamels(cam));
-			// players
-			getPlayers().then(p => {
-				updatePlayers(p)
-				getPlayerTurn().then(name => updateTurn(name))
-			})
-			// show bets
-			getBet().then(b => updateBets(b))
-			getGlobalBet().then(b => updateGlobalBet(b))
-			// show traps
-			getTraps().then(t => updateTraps(t))
-			// show whose turn it is
-		}
-
-		// websocket sync
-		/*
-		var webSocket;
-		if (location.protocol !== 'https:') {
-			webSocket = new WebSocket("ws://" + location.hostname + ":" + location.port + "/sync");
-		} else {
-			webSocket = new WebSocket("wss://" + location.hostname + ":" + location.port + "/sync");
-		}
-		webSocket.onmessage = (msg) => fetchAll()
-		webSocket.onclose = () => console.log("socket closed")
-		const sendSocketUpdate = () => webSocket.send(GAME_ID)
-		*/
-		// auto start/login
-		if (document.getElementById('name-input').value !== "") {
-			fetchAll()
-		}
-	
 	</script>
 	
 	<script src="/game.js"></script>
